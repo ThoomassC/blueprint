@@ -20,7 +20,6 @@ function App() {
   const getJSON = useEditorStore((state) => state.getJSON);
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const togglePreviewMode = useEditorStore((state) => state.togglePreviewMode);
-
   const removeElement = useEditorStore((state) => state.removeElement);
 
   const [activeDragType, setActiveDragType] = useState<ElementType | null>(
@@ -36,10 +35,8 @@ function App() {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (useEditorStore.getState().isPreviewMode) return;
-
       const currentSelectedId = useEditorStore.getState().selectedId;
       if (!currentSelectedId) return;
-
       const activeElement = document.activeElement?.tagName;
       const isTyping =
         activeElement === 'INPUT' || activeElement === 'TEXTAREA';
@@ -51,9 +48,7 @@ function App() {
         removeElement(currentSelectedId);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };

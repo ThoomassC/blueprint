@@ -31,7 +31,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         fontFamily: 'Arial',
       },
       attributes: { htmlId: 'main-header', className: 'header-fixed' },
-      animation: { type: 'none', duration: 1, delay: 0 },
     },
     {
       id: uuidv4(),
@@ -47,7 +46,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         fontFamily: 'Arial',
       },
       attributes: { htmlId: 'main-footer', className: '' },
-      animation: { type: 'none', duration: 1, delay: 0 },
     },
   ],
   selectedId: null,
@@ -68,7 +66,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         defaultContent = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
         defaultStyle = { ...defaultStyle, width: '480px', height: '270px' };
         break;
-
       case 'image':
         defaultContent = 'https://via.placeholder.com/300x200';
         defaultStyle = { ...defaultStyle, width: '300px', height: 'auto' };
@@ -142,7 +139,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           y,
           style: defaultStyle,
           attributes: { htmlId: '', className: '' },
-          animation: { type: 'none', duration: 1, delay: 0 },
         },
       ],
       selectedId: newId,

@@ -1,5 +1,5 @@
 import { useDraggable } from '@dnd-kit/core';
-import type { EditorElement, AnimationType } from '../../types/editor';
+import type { EditorElement } from '../../types/editor';
 import { RenderNode } from './RenderNode';
 import { useEditorStore } from '../../store/useEditorStore';
 
@@ -13,7 +13,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const updateElement = useEditorStore((state) => state.updateElement);
   const removeElement = useEditorStore((state) => state.removeElement);
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
-
   const isSelected = !isPreviewMode && selectedId === element.id;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -32,13 +31,23 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     outline: isSelected ? '2px solid #3498db' : 'none',
   };
 
-  const updateStyle = (key: string, value: string) => {
-    updateElement(element.id, {
-      style: { ...element.style, [key]: value },
-    });
+  const updateStyle = (key: string, value: string) =>
+    updateElement(element.id, { style: { ...element.style, [key]: value } });
+
+  const updateCurrentSlide = (
+    key: 'title' | 'description' | 'imageUrl',
+    value: string
+  ) => {
+    const currentIndex = parseInt(element.content) || 0;
+    const newSlides = [...(element.slides || [])];
+    if (newSlides[currentIndex]) {
+      newSlides[currentIndex] = { ...newSlides[currentIndex], [key]: value };
+      updateElement(element.id, { slides: newSlides });
+    }
   };
 
   const renderToolbar = () => {
+    const currentIndex = parseInt(element.content) || 0;
     return (
       <div
         className="element-toolbar"
@@ -46,52 +55,98 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       >
         <div className="toolbar-content">
           <div className="toolbar-section">
-            {['image', 'video'].includes(element.type) ? (
-              <div style={{ marginBottom: '5px' }}>
+            {element.type === 'carousel' && (
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}
+              >
                 <label style={{ fontSize: '9px', color: '#aaa' }}>
-                  {element.type === 'video' ? 'URL YOUTUBE / MP4' : 'URL IMAGE'}
+                  SLIDE {currentIndex + 1}
                 </label>
                 <input
                   type="text"
-                  value={element.content}
+                  placeholder="Titre"
                   className="toolbar-input"
-                  onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                  }
-                  placeholder="https://..."
+                  value={element.slides?.[currentIndex]?.title || ''}
+                  onChange={(e) => updateCurrentSlide('title', e.target.value)}
                 />
-              </div>
-            ) : element.type === 'card' ? (
-              <>
                 <input
                   type="text"
-                  value={element.content}
+                  placeholder="URL Image"
                   className="toolbar-input"
+                  value={element.slides?.[currentIndex]?.imageUrl || ''}
+                  onChange={(e) =>
+                    updateCurrentSlide('imageUrl', e.target.value)
+                  }
+                />
+                <textarea
+                  placeholder="Desc"
+                  className="toolbar-textarea"
+                  value={element.slides?.[currentIndex]?.description || ''}
+                  onChange={(e) =>
+                    updateCurrentSlide('description', e.target.value)
+                  }
+                />
+                <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                  <button
+                    className="btn-add-option"
+                    onClick={() =>
+                      updateElement(element.id, {
+                        slides: [
+                          ...(element.slides || []),
+                          { title: 'New', description: '', imageUrl: '' },
+                        ],
+                      })
+                    }
+                  >
+                    + Slide
+                  </button>
+                  <button
+                    className="btn-mini-delete"
+                    onClick={() =>
+                      updateElement(element.id, {
+                        slides: element.slides?.filter(
+                          (_, i) => i !== currentIndex
+                        ),
+                        content: '0',
+                      })
+                    }
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {['image', 'video'].includes(element.type) && (
+              <>
+                <label style={{ fontSize: '9px', color: '#aaa' }}>URL</label>
+                <input
+                  className="toolbar-input"
+                  value={element.content}
                   onChange={(e) =>
                     updateElement(element.id, { content: e.target.value })
                   }
-                  placeholder="Titre"
+                />
+              </>
+            )}
+
+            {element.type === 'card' && (
+              <>
+                <input
+                  className="toolbar-input"
+                  value={element.content}
+                  onChange={(e) =>
+                    updateElement(element.id, { content: e.target.value })
+                  }
                 />
                 <textarea
-                  value={element.description || ''}
                   className="toolbar-textarea"
+                  value={element.description}
                   onChange={(e) =>
                     updateElement(element.id, { description: e.target.value })
                   }
-                  placeholder="Description"
                 />
               </>
-            ) : (
-              !['select'].includes(element.type) && (
-                <input
-                  type="text"
-                  value={element.content}
-                  className="toolbar-input"
-                  onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                  }
-                />
-              )
             )}
 
             {element.type === 'select' && (
@@ -104,19 +159,20 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                       value={opt}
                       className="toolbar-input-small"
                       onChange={(e) => {
-                        const newOpts = [...(element.options || [])];
-                        newOpts[i] = e.target.value;
-                        updateElement(element.id, { options: newOpts });
+                        const n = [...(element.options || [])];
+                        n[i] = e.target.value;
+                        updateElement(element.id, { options: n });
                       }}
                     />
                     <button
                       className="btn-mini-delete"
-                      onClick={() => {
-                        const newOpts = element.options?.filter(
-                          (_, idx) => idx !== i
-                        );
-                        updateElement(element.id, { options: newOpts });
-                      }}
+                      onClick={() =>
+                        updateElement(element.id, {
+                          options: element.options?.filter(
+                            (_, idx) => idx !== i
+                          ),
+                        })
+                      }
                     >
                       x
                     </button>
@@ -124,17 +180,30 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                 ))}
                 <button
                   className="btn-add-option"
-                  onClick={() => {
-                    const newOpts = [
-                      ...(element.options || []),
-                      `Opt ${element.options ? element.options.length + 1 : 1}`,
-                    ];
-                    updateElement(element.id, { options: newOpts });
-                  }}
+                  onClick={() =>
+                    updateElement(element.id, {
+                      options: [
+                        ...(element.options || []),
+                        `Opt ${element.options?.length}`,
+                      ],
+                    })
+                  }
                 >
                   + Option
                 </button>
               </div>
+            )}
+
+            {!['select', 'card', 'image', 'video', 'carousel'].includes(
+              element.type
+            ) && (
+              <input
+                className="toolbar-input"
+                value={element.content}
+                onChange={(e) =>
+                  updateElement(element.id, { content: e.target.value })
+                }
+              />
             )}
           </div>
 
@@ -144,109 +213,93 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             >
               🎨 STYLE
             </label>
-            <div
-              style={{
-                display: 'flex',
-                gap: '10px',
-                alignItems: 'center',
-                marginBottom: '5px',
-              }}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '5px' }}>
+              <input
+                type="color"
+                value={element.style?.backgroundColor || '#ffffff'}
+                onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                style={{ width: '20px', height: '20px', border: 'none' }}
+              />
+              <input
+                type="color"
+                value={element.style?.color || '#000000'}
+                onChange={(e) => updateStyle('color', e.target.value)}
+                style={{ width: '20px', height: '20px', border: 'none' }}
+              />
+            </div>
+            <select
+              className="toolbar-input"
+              value={element.style?.fontFamily || 'Arial'}
+              onChange={(e) => updateStyle('fontFamily', e.target.value)}
             >
-              <div title="Couleur de fond">
-                <span style={{ fontSize: '10px' }}>Fond: </span>
-                <input
-                  type="color"
-                  value={element.style?.backgroundColor || '#ffffff'}
-                  onChange={(e) =>
-                    updateStyle('backgroundColor', e.target.value)
-                  }
-                  style={{
-                    cursor: 'pointer',
-                    width: '25px',
-                    height: '25px',
-                    border: 'none',
-                    padding: 0,
-                  }}
-                />
-              </div>
-              <div title="Couleur du texte">
-                <span style={{ fontSize: '10px' }}>Txt: </span>
-                <input
-                  type="color"
-                  value={element.style?.color || '#000000'}
-                  onChange={(e) => updateStyle('color', e.target.value)}
-                  style={{
-                    cursor: 'pointer',
-                    width: '25px',
-                    height: '25px',
-                    border: 'none',
-                    padding: 0,
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                style={{ fontSize: '9px', color: '#aaa', display: 'block' }}
-              >
-                Police
-              </label>
-              <select
-                className="toolbar-input"
-                value={element.style?.fontFamily || 'Arial'}
-                onChange={(e) => updateStyle('fontFamily', e.target.value)}
-              >
-                <option value="Arial">Arial</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Impact">Impact</option>
-                <option value="Tahoma">Tahoma</option>
-              </select>
-            </div>
+              <option value="Arial">Arial</option>
+              <option value="Courier New">Courier</option>
+              <option value="Times New Roman">Times</option>
+              <option value="Impact">Impact</option>
+            </select>
           </div>
 
           <div className="toolbar-section">
             <label
               style={{ fontSize: '10px', fontWeight: 'bold', color: '#888' }}
             >
-              ⚙️ TECH
+              ⚙️ CONFIG TECH
             </label>
-            <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
-              <select
+
+            <div style={{ marginBottom: '5px' }}>
+              <label
+                style={{
+                  fontSize: '9px',
+                  color: '#aaa',
+                  display: 'block',
+                  marginBottom: '2px',
+                }}
+              >
+                ID Unique (JS)
+              </label>
+              <input
+                type="text"
                 className="toolbar-input"
-                value={element.animation.type}
+                placeholder="ex: mon-bouton-1"
+                value={element.attributes.htmlId || ''}
                 onChange={(e) =>
                   updateElement(element.id, {
-                    animation: {
-                      ...element.animation,
-                      type: e.target.value as AnimationType,
+                    attributes: {
+                      ...element.attributes,
+                      htmlId: e.target.value,
                     },
                   })
                 }
-              >
-                <option value="none">Anim: Non</option>
-                <option value="fade-in">Fade In</option>
-                <option value="slide-up">Slide Up</option>
-                <option value="zoom-in">Zoom In</option>
-                <option value="bounce">Bounce</option>
-              </select>
+              />
             </div>
-            <input
-              type="text"
-              className="toolbar-input"
-              placeholder="Classes CSS"
-              value={element.attributes.className || ''}
-              onChange={(e) =>
-                updateElement(element.id, {
-                  attributes: {
-                    ...element.attributes,
-                    className: e.target.value,
-                  },
-                })
-              }
-            />
+
+            {/* CLASSES CSS */}
+            <div>
+              <label
+                style={{
+                  fontSize: '9px',
+                  color: '#aaa',
+                  display: 'block',
+                  marginBottom: '2px',
+                }}
+              >
+                Classes CSS
+              </label>
+              <input
+                type="text"
+                className="toolbar-input"
+                placeholder="ex: btn-lg shadow-md"
+                value={element.attributes.className || ''}
+                onChange={(e) =>
+                  updateElement(element.id, {
+                    attributes: {
+                      ...element.attributes,
+                      className: e.target.value,
+                    },
+                  })
+                }
+              />
+            </div>
           </div>
 
           <div className="toolbar-actions">
@@ -254,7 +307,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               onClick={() => removeElement(element.id)}
               className="toolbar-delete-btn"
             >
-              🗑️ Supprimer
+              🗑️
             </button>
           </div>
         </div>

@@ -6,35 +6,35 @@ export type ElementType =
   | 'header'
   | 'footer'
   | 'card'
+  | 'carousel'
   | 'select'
   | 'input-number'
   | 'calendar'
   | 'title';
 
-export type AnimationType =
-  | 'none'
-  | 'fade-in'
-  | 'slide-up'
-  | 'zoom-in'
-  | 'bounce';
+export interface Slide {
+  title: string;
+  description: string;
+  imageUrl?: string;
+}
 
 export interface EditorElement {
   id: string;
   type: ElementType;
   content: string;
-  x: number;
-  y: number;
+
+  slides?: Slide[];
   options?: string[];
   description?: string;
+
+  x: number;
+  y: number;
+
   attributes: {
     htmlId?: string;
     className?: string;
   };
-  animation: {
-    type: AnimationType;
-    duration: number;
-    delay: number;
-  };
+
   style?: {
     backgroundColor?: string;
     color?: string;
