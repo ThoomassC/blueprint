@@ -102,6 +102,21 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         />
       );
 
+    case "logo":
+      return (
+        <img
+          src={element.content}
+          alt="Logo du site"
+          style={{
+            ...styles,
+            objectFit: "contain",
+            display: "block",
+            cursor: "pointer",
+          }}
+          draggable={false}
+        />
+      );
+
     case "select":
       return (
         <div style={{ minWidth: "150px" }}>
