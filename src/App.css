@@ -17,7 +17,7 @@ body,
 .app-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: auto;
   background-color: #ffffff; /* Fond blanc */
 }
 
