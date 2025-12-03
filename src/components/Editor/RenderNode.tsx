@@ -2,6 +2,7 @@ import type { EditorElement } from '../../types/editor';
 import { useEditorStore } from '../../store/useEditorStore';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import React from 'react';
 
 const getEmbedUrl = (url: string) => {
   if (url.includes('youtube.com/watch?v=')) {
@@ -30,7 +31,12 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
     fontFamily: element.style?.fontFamily || 'Arial',
     color: element.style?.color || undefined,
     backgroundColor: element.style?.backgroundColor || undefined,
-    display: element.style?.justifyContent ? 'flex' : undefined,
+    position: element.style?.position as React.CSSProperties['position'],
+    display:
+      (element.style?.display as React.CSSProperties['display']) ||
+      (element.style?.justifyContent ? 'flex' : undefined),
+    flexDirection: element.style
+      ?.flexDirection as React.CSSProperties['flexDirection'],
     alignItems:
       element.style?.verticalAlign === 'top'
         ? 'flex-start'
@@ -38,13 +44,10 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         ? 'center'
         : element.style?.verticalAlign === 'bottom'
         ? 'flex-end'
-        : undefined,
-    justifyContent: element.style?.justifyContent || undefined,
-    textAlign: element.style?.textAlign as
-      | 'left'
-      | 'center'
-      | 'right'
-      | undefined,
+        : (element.style?.alignItems as React.CSSProperties['alignItems']),
+    justifyContent: element.style
+      ?.justifyContent as React.CSSProperties['justifyContent'],
+    textAlign: element.style?.textAlign as React.CSSProperties['textAlign'],
   };
 
   const interactionStyle = {
@@ -247,6 +250,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             backgroundColor: element.style?.backgroundColor || '#ffffff',
             outline: 'none',
             boxSizing: 'border-box',
+            textAlign: element.style
+              ?.textAlign as React.CSSProperties['textAlign'],
           }}
           onChange={(e) =>
             updateElement(element.id, { content: e.target.value })
@@ -361,6 +366,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         <form
           style={{
             ...styles,
+            // 👇 ICI : On force l'étirement, même si le texte est centré
+            alignItems: 'stretch',
             border: '2px solid #3498db',
             borderRadius: '12px',
             padding: '20px',
@@ -380,6 +387,9 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               marginBottom: '15px',
               color: element.style?.color || '#2c3e50',
               fontFamily: styles.fontFamily,
+              // Le titre obéit bien à l'alignement (Gauche/Centre/Droite)
+              textAlign: element.style
+                ?.textAlign as React.CSSProperties['textAlign'],
             }}
           >
             {element.content}
@@ -390,7 +400,11 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
               {element.children.map((child) => (
-                <div key={child.id} style={{ position: 'relative' }}>
+                // 👇 ICI : On ajoute width: '100%' pour que le champ prenne toute la place
+                <div
+                  key={child.id}
+                  style={{ position: 'relative', width: '100%' }}
+                >
                   {!isPreviewMode && (
                     <div
                       style={{
@@ -446,6 +460,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                         fontWeight: 'bold',
                         marginBottom: '4px',
                         color: '#555',
+                        textAlign: 'left',
                       }}
                     >
                       {child.description}
@@ -467,6 +482,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           fontFamily: element.style?.fontFamily || 'Arial',
                           outline: 'none',
                           boxSizing: 'border-box',
+                          textAlign: element.style
+                            ?.textAlign as React.CSSProperties['textAlign'],
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -490,6 +507,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           fontFamily: element.style?.fontFamily || 'Arial',
                           outline: 'none',
                           boxSizing: 'border-box',
+                          textAlign: element.style
+                            ?.textAlign as React.CSSProperties['textAlign'],
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -513,6 +532,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           fontFamily: element.style?.fontFamily || 'Arial',
                           outline: 'none',
                           boxSizing: 'border-box',
+                          textAlign: element.style
+                            ?.textAlign as React.CSSProperties['textAlign'],
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -535,6 +556,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           fontFamily: element.style?.fontFamily || 'Arial',
                           outline: 'none',
                           boxSizing: 'border-box',
+                          textAlign: element.style
+                            ?.textAlign as React.CSSProperties['textAlign'],
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -553,7 +576,6 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             </p>
           )}
 
-          {/* Boutons d'ajout de champs (en mode édition uniquement) */}
           {!isPreviewMode && (
             <div
               style={{
@@ -674,7 +696,6 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             </div>
           )}
 
-          {/* Bouton Submit */}
           <button
             type="submit"
             style={{
@@ -704,7 +725,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </form>
       );
 
-    case "map": {
+    case 'map': {
       const markers = element.markers || [];
       const centerLat = element.coordinates?.lat || 48.8566;
       const centerLng = element.coordinates?.lng || 2.3522;
@@ -767,19 +788,19 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                 (marker) => `
               const icon_${marker.id.replace(
                 /[^a-zA-Z0-9]/g,
-                "_"
+                '_'
               )} = L.divIcon({
                 className: 'custom-marker',
                 html: \`
                   <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
                     <svg width="30" height="40" viewBox="0 0 30 40" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
                       <path d="M15 0C8.373 0 3 5.373 3 12c0 9 12 28 12 28s12-19 12-28c0-6.627-5.373-12-12-12z" fill="${
-                        marker.color || "#FF5252"
+                        marker.color || '#FF5252'
                       }" />
                       <circle cx="15" cy="12" r="5" fill="white" />
                     </svg>
                     <div style="
-                      background-color: ${marker.color || "#FF5252"};
+                      background-color: ${marker.color || '#FF5252'};
                       color: white;
                       padding: 2px 8px;
                       border-radius: 4px;
@@ -798,14 +819,14 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
 
               L.marker([${marker.lat}, ${
                   marker.lng
-                }], { icon: icon_${marker.id.replace(/[^a-zA-Z0-9]/g, "_")} })
+                }], { icon: icon_${marker.id.replace(/[^a-zA-Z0-9]/g, '_')} })
                 .addTo(map)
                 .bindPopup('<b>${marker.label}</b><br>Lat: ${
                   marker.lat
                 }<br>Lng: ${marker.lng}');
             `
               )
-              .join("\n")}
+              .join('\n')}
 
             // Ajuster la vue pour inclure tous les marqueurs
             ${
@@ -814,11 +835,11 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               const bounds = L.latLngBounds([
                 ${markers
                   .map((m) => `[${m.lat}, ${m.lng}]`)
-                  .join(",\n                ")}
+                  .join(',\n                ')}
               ]);
               map.fitBounds(bounds, { padding: [50, 50] });
             `
-                : ""
+                : ''
             }
           </script>
         </body>
@@ -829,23 +850,23 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         <div
           style={{
             ...styles,
-            border: "2px solid #4CAF50",
-            borderRadius: "8px",
-            overflow: "hidden",
-            minWidth: "300px",
-            minHeight: "200px",
-            position: "relative",
-            backgroundColor: "#f0f0f0",
+            border: '2px solid #4CAF50',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            minWidth: '300px',
+            minHeight: '200px',
+            position: 'relative',
+            backgroundColor: '#f0f0f0',
           }}
         >
           <iframe
             srcDoc={mapHTML}
             style={{
               ...interactionStyle,
-              width: "100%",
-              height: "100%",
-              minHeight: "200px",
-              border: "none",
+              width: '100%',
+              height: '100%',
+              minHeight: '200px',
+              border: 'none',
             }}
             title="Carte interactive"
           />
@@ -853,28 +874,28 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
           {!isPreviewMode && (
             <div
               style={{
-                position: "absolute",
-                bottom: "10px",
-                left: "10px",
-                backgroundColor: "rgba(255, 255, 255, 0.95)",
-                padding: "5px 10px",
-                borderRadius: "4px",
-                fontSize: "12px",
-                color: "#333",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                position: 'absolute',
+                bottom: '10px',
+                left: '10px',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                color: '#333',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                 zIndex: 1000,
               }}
             >
-              📍 {element.content || "Ma carte"}
+              📍 {element.content || 'Ma carte'}
               {markers.length > 0 && (
                 <span
                   style={{
-                    marginLeft: "5px",
-                    color: "#4CAF50",
-                    fontWeight: "bold",
+                    marginLeft: '5px',
+                    color: '#4CAF50',
+                    fontWeight: 'bold',
                   }}
                 >
-                  ({markers.length} point{markers.length > 1 ? "s" : ""})
+                  ({markers.length} point{markers.length > 1 ? 's' : ''})
                 </span>
               )}
             </div>

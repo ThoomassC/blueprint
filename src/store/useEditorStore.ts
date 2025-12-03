@@ -1,7 +1,7 @@
-import { create } from "zustand";
-import { v4 as uuidv4 } from "uuid";
-import type { EditorElement, ElementType, MapMarker } from "../types/editor";
-import { audioDescription } from "../services/audioDescription";
+import { create } from 'zustand';
+import { v4 as uuidv4 } from 'uuid';
+import type { EditorElement, ElementType, MapMarker } from '../types/editor';
+import { audioDescription } from '../services/audioDescription';
 
 interface EditorState {
   elements: EditorElement[];
@@ -12,14 +12,14 @@ interface EditorState {
   // 1. AJOUT: La propriété pour la couleur
   canvasBackgroundColor: string;
 
-  centerElement: (id: string) => void;
+  centerElementOnCanvas: (id: string) => void;
   addElement: (type: ElementType, x: number, y: number) => void;
   addChildToForm: (formId: string, childElement: EditorElement) => void;
   removeChildFromForm: (formId: string, childId: string) => void;
   updateFormChild: (
-      formId: string,
-      childId: string,
-      updates: Partial<EditorElement>
+    formId: string,
+    childId: string,
+    updates: Partial<EditorElement>
   ) => void;
   updatePosition: (id: string, x: number, y: number) => void;
   selectElement: (id: string | null) => void;
@@ -37,33 +37,41 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   elements: [
     {
       id: uuidv4(),
-      type: "header",
-      content: "Mon Super Site",
+      type: 'header',
+      content: 'Mon Super Site',
       x: 0,
       y: 0,
       style: {
-        width: "800px",
-        height: "80px",
-        backgroundColor: "#2c3e50",
-        color: "white",
-        fontFamily: "Arial",
+        width: '800px',
+        height: '80px',
+        backgroundColor: '#2c3e50',
+        color: 'white',
+        fontFamily: 'Arial',
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       },
-      attributes: { htmlId: "main-header", className: "header-fixed" },
+      attributes: { htmlId: 'main-header', className: 'header-fixed' },
     },
     {
       id: uuidv4(),
-      type: "footer",
-      content: "© 2025 - Tous droits réservés",
+      type: 'footer',
+      content: '© 2025 - Tous droits réservés',
       x: 0,
       y: 940,
       style: {
-        width: "800px",
-        height: "60px",
-        backgroundColor: "#95a5a6",
-        color: "white",
-        fontFamily: "Arial",
+        width: '800px',
+        height: '60px',
+        backgroundColor: '#95a5a6',
+        color: 'white',
+        fontFamily: 'Arial',
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       },
-      attributes: { htmlId: "main-footer", className: "" },
+      attributes: { htmlId: 'main-footer', className: '' },
     },
   ],
   selectedId: null,
@@ -71,157 +79,163 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   canvasDimensions: { width: 800, height: 1000 },
 
   // 3. AJOUT: Initialisation de la couleur par défaut
-  canvasBackgroundColor: "#ffffff",
+  canvasBackgroundColor: '#ffffff',
 
   // 4. AJOUT: Implémentation du setter
   setCanvasBackgroundColor: (color) => {
     set({ canvasBackgroundColor: color });
     // Optionnel : ajouter une annonce audio
-    // audioDescription.speak(`Couleur de fond changée`, "low"); 
+    // audioDescription.speak(`Couleur de fond changée`, "low");
   },
 
-  centerElement: (id) => {
+  // 3. AJOUT: Initialisation de la couleur par défaut
+  canvasBackgroundColor: '#ffffff',
+
+  // 4. AJOUT: Implémentation du setter
+  setCanvasBackgroundColor: (color) => {
+    set({ canvasBackgroundColor: color });
+    // Optionnel : ajouter une annonce audio
+    // audioDescription.speak(`Couleur de fond changée`, "low");
+  },
+
+  centerElementOnCanvas: (id) => {
     const state = get();
     const element = state.elements.find((el) => el.id === id);
 
     if (element) {
-      const elementWidth = parseFloat(element.style?.width || "100");
-      const elementHeight = parseFloat(element.style?.height || "100");
+      const elementWidth = parseFloat(element.style?.width || '100');
+      const elementHeight = parseFloat(element.style?.height || '100');
 
       const centerX = (state.canvasDimensions.width - elementWidth) / 2;
       const centerY = (state.canvasDimensions.height - elementHeight) / 2;
 
       set((state) => ({
         elements: state.elements.map((el) =>
-            el.id === id
-                ? { ...el, x: Math.max(0, centerX), y: Math.max(0, centerY) }
-                : el
+          el.id === id
+            ? { ...el, x: Math.max(0, centerX), y: Math.max(0, centerY) }
+            : el
         ),
       }));
 
       audioDescription.announceElementMoved(
-          element.type,
-          Math.max(0, centerX),
-          Math.max(0, centerY)
+        element.type,
+        Math.max(0, centerX),
+        Math.max(0, centerY)
       );
     }
   },
 
   addElement: (type, x, y) => {
     const newId = uuidv4();
-    let defaultContent = "Texte";
-    let defaultStyle: EditorElement["style"] = {
-      fontFamily: "Arial",
-      color: "#000000",
+    let defaultContent = 'Texte';
+    let defaultStyle: EditorElement['style'] = {
+      fontFamily: 'Arial',
+      color: '#000000',
+      textAlign: 'left',
     };
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
     let defaultCoordinates: { lat: number; lng: number } | undefined =
-        undefined;
+      undefined;
     let defaultMarkers: MapMarker[] | undefined = undefined;
 
     switch (type) {
-      case "video":
-        defaultContent = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-        defaultStyle = { ...defaultStyle, width: "480px", height: "270px" };
+      case 'video':
+        defaultContent = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        defaultStyle = { ...defaultStyle, width: '480px', height: '270px' };
         break;
-      case "image":
-        defaultContent = "https://via.placeholder.com/300x200";
-        defaultStyle = { ...defaultStyle, width: "300px", height: "auto" };
+      case 'image':
+        defaultContent = 'https://via.placeholder.com/300x200';
+        defaultStyle = { ...defaultStyle, width: '300px', height: 'auto' };
         break;
-      case "card":
-        defaultContent = "Titre Carte";
-        defaultDescription = "Description...";
+      case 'card':
+        defaultContent = 'Titre Carte';
+        defaultDescription = 'Description...';
         defaultStyle = {
           ...defaultStyle,
-          width: "300px",
-          backgroundColor: "#ffffff",
-          padding: "15px",
+          width: '300px',
+          backgroundColor: '#ffffff',
+          padding: '15px',
+          display: 'flex',
+          flexDirection: 'column',
         };
         break;
-      case "button":
-        defaultContent = "Bouton";
+      case 'button':
+        defaultContent = 'Bouton';
         defaultStyle = {
           ...defaultStyle,
-          backgroundColor: "#3498db",
-          color: "#ffffff",
-          borderRadius: "4px",
-          padding: "10px 20px",
+          backgroundColor: '#3498db',
+          color: '#ffffff',
+          borderRadius: '4px',
+          padding: '10px 20px',
+          textAlign: 'center',
         };
         break;
-      case "header":
-        defaultContent = "Header";
+      case 'header':
+        defaultContent = 'Header';
         defaultStyle = {
           ...defaultStyle,
-          width: "800px",
-          height: "80px",
-          backgroundColor: "#2c3e50",
-          color: "#ffffff",
+          width: '800px',
+          height: '80px',
+          backgroundColor: '#2c3e50',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         };
         break;
-      case "footer":
-        defaultContent = "Footer";
+      case 'footer':
+        defaultContent = 'Footer';
         defaultStyle = {
           ...defaultStyle,
-          width: "800px",
-          height: "60px",
-          backgroundColor: "#95a5a6",
-          color: "#ffffff",
+          width: '800px',
+          height: '60px',
+          backgroundColor: '#95a5a6',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         };
         break;
-      case "title":
-        defaultContent = "Mon Titre";
-        defaultStyle = { ...defaultStyle, color: "#2c3e50" };
+      case 'title':
+        defaultContent = 'Mon Titre';
+        defaultStyle = { ...defaultStyle, color: '#2c3e50' };
         break;
-      case "select":
-        defaultContent = "Option 1";
-        defaultOptions = ["Option 1", "Option 2", "Option 3"];
+      case 'select':
+        defaultContent = 'Option 1';
+        defaultOptions = ['Option 1', 'Option 2', 'Option 3'];
         break;
-      case "input-number":
-        defaultContent = "0";
+      case 'input-number':
+        defaultContent = '0';
         break;
-      case "input-email":
-        defaultContent = "";
+      case 'input-email':
+        defaultContent = '';
         break;
-      case "input-text":
-        defaultContent = "";
+      case 'input-text':
+        defaultContent = '';
         break;
-      case "input-form": {
-        defaultContent = "Mon Formulaire";
+      case 'input-form': {
+        defaultContent = 'Mon Formulaire';
         defaultStyle = {
           ...defaultStyle,
-          width: "400px",
-          backgroundColor: "#f8f9fa",
-          padding: "20px",
+          width: '400px',
+          backgroundColor: '#f8f9fa',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          textAlign: 'left',
+          alignItems: 'stretch',
         };
-        // Créer des inputs par défaut pour le formulaire
+
         const formChildren: EditorElement[] = [
           {
             id: uuidv4(),
-            type: "input-email",
-            content: "",
+            type: 'input-email',
+            content: '',
             x: 0,
             y: 0,
-            style: { fontFamily: "Arial" },
-            attributes: { htmlId: "", className: "" },
-          },
-          {
-            id: uuidv4(),
-            type: "input-number",
-            content: "0",
-            x: 0,
-            y: 0,
-            style: { fontFamily: "Arial" },
-            attributes: { htmlId: "", className: "" },
-          },
-          {
-            id: uuidv4(),
-            type: "calendar",
-            content: new Date().toISOString().split("T")[0],
-            x: 0,
-            y: 0,
-            style: { fontFamily: "Arial" },
-            attributes: { htmlId: "", className: "" },
+            style: { fontFamily: 'Arial' },
+            attributes: { htmlId: '', className: '' },
           },
         ];
 
@@ -238,31 +252,31 @@ export const useEditorStore = create<EditorState>((set, get) => ({
               x,
               y,
               style: defaultStyle,
-              attributes: { htmlId: "", className: "" },
+              attributes: { htmlId: '', className: '' },
             },
           ],
           selectedId: newId,
         }));
         return;
       }
-      case "calendar":
-        defaultContent = new Date().toISOString().split("T")[0];
+      case 'calendar':
+        defaultContent = new Date().toISOString().split('T')[0];
         break;
-      case "map":
-        defaultContent = "Ma carte";
+      case 'map':
+        defaultContent = 'Ma carte';
         defaultStyle = {
           ...defaultStyle,
-          width: "400px",
-          height: "300px",
+          width: '400px',
+          height: '300px',
         };
-        defaultCoordinates = { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
+        defaultCoordinates = { lat: 48.8566, lng: 2.3522 };
         defaultMarkers = [
           {
             id: uuidv4(),
             lat: 48.8566,
             lng: 2.3522,
-            label: "Paris",
-            color: "#FF5252",
+            label: 'Paris',
+            color: '#FF5252',
           },
         ];
         break;
@@ -282,7 +296,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           x,
           y,
           style: defaultStyle,
-          attributes: { htmlId: "", className: "" },
+          attributes: { htmlId: '', className: '' },
         },
       ],
       selectedId: newId,
@@ -294,12 +308,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   addChildToForm: (formId, childElement) => {
     set((state) => ({
       elements: state.elements.map((el) =>
-          el.id === formId
-              ? {
-                ...el,
-                children: [...(el.children || []), childElement],
-              }
-              : el
+        el.id === formId
+          ? {
+              ...el,
+              children: [...(el.children || []), childElement],
+            }
+          : el
       ),
     }));
     audioDescription.announceFormChildAdded(childElement.type);
@@ -312,14 +326,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-          el.id === formId
-              ? {
-                ...el,
-                children: (el.children || []).filter(
-                    (child) => child.id !== childId
-                ),
-              }
-              : el
+        el.id === formId
+          ? {
+              ...el,
+              children: (el.children || []).filter(
+                (child) => child.id !== childId
+              ),
+            }
+          : el
       ),
     }));
 
@@ -335,22 +349,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-          el.id === formId
-              ? {
-                ...el,
-                children: (el.children || []).map((child) =>
-                    child.id === childId ? { ...child, ...updates } : child
-                ),
-              }
-              : el
+        el.id === formId
+          ? {
+              ...el,
+              children: (el.children || []).map((child) =>
+                child.id === childId ? { ...child, ...updates } : child
+              ),
+            }
+          : el
       ),
     }));
 
     if (child && updates.content !== undefined) {
-      audioDescription.announceFormChildUpdated(child.type, "contenu");
-    }
-    if (child && updates.description !== undefined) {
-      audioDescription.announceFormChildUpdated(child.type, "label");
+      audioDescription.announceFormChildUpdated(child.type, 'contenu');
     }
   },
 
@@ -360,7 +371,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-          el.id === id ? { ...el, x, y } : el
+        el.id === id ? { ...el, x, y } : el
       ),
     }));
 
@@ -380,49 +391,69 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const state = get();
     const element = state.elements.find((el) => el.id === id);
 
+    const styleUpdates = { ...(updates.style || {}) };
+
+    if (element && updates.style && updates.style.textAlign) {
+      //
+    }
+
+    if (Object.keys(styleUpdates).length > 0) {
+      updates.style = styleUpdates;
+    }
+
     set((state) => ({
       elements: state.elements.map((el) =>
-          el.id === id ? { ...el, ...updates } : el
+        el.id === id
+          ? {
+              ...el,
+              ...updates,
+              style: { ...el.style, ...updates.style },
+            }
+          : el
       ),
     }));
 
     if (element) {
-      // Determine what changed
       if (updates.style) {
-        // Check specific style properties
+        if (updates.style.textAlign) {
+          audioDescription.announceStyleChanged(
+            'alignement',
+            updates.style.textAlign
+          );
+        }
         if (updates.style.color !== undefined) {
-          audioDescription.announceStyleChanged("couleur", updates.style.color);
+          audioDescription.announceStyleChanged('couleur', updates.style.color);
         }
         if (updates.style.backgroundColor !== undefined) {
           audioDescription.announceStyleChanged(
-              "fond",
-              updates.style.backgroundColor
+            'fond',
+            updates.style.backgroundColor
           );
         }
         if (updates.style.fontFamily !== undefined) {
           audioDescription.announceStyleChanged(
-              "police",
-              updates.style.fontFamily
+            'police',
+            updates.style.fontFamily
           );
         }
         if (updates.style.fontSize !== undefined) {
           audioDescription.announceStyleChanged(
-              "taille",
-              `${updates.style.fontSize}px`
+            'taille',
+            `${updates.style.fontSize}px`
           );
         }
       }
       if (updates.content !== undefined) {
         const contentStr =
-            typeof updates.content === "string"
-                ? updates.content
-                : String(updates.content);
+          typeof updates.content === 'string'
+            ? updates.content
+            : String(updates.content);
         audioDescription.announceContentChanged(element.type, contentStr);
       }
       if (updates.description !== undefined) {
         audioDescription.announceAttributeChanged(
-            "description",
-            String(updates.description)
+          'description',
+          String(updates.description)
         );
       }
     }
@@ -455,14 +486,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { elements, canvasBackgroundColor, canvasDimensions } = get();
 
     const exportData = {
-      version: "1.0",
+      version: '1.0',
       timestamp: new Date().toISOString(),
       pageSettings: {
         backgroundColor: canvasBackgroundColor,
         width: canvasDimensions.width,
-        height: canvasDimensions.height
+        height: canvasDimensions.height,
       },
-      elements: elements
+      elements: elements,
     };
 
     return JSON.stringify(exportData, null, 2);
