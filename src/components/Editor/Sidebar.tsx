@@ -1,4 +1,4 @@
-import { SidebarItem } from './SidebarItem';
+import { SidebarItem } from "./SidebarItem";
 
 export const Sidebar = () => {
   return (
@@ -19,6 +19,7 @@ export const Sidebar = () => {
 
         <SidebarItem type="select" label="▼" title="Menu" />
         <SidebarItem type="input-number" label="123" title="Nombre" />
+        <SidebarItem type="input-email" label="📧" title="Email" />
         <SidebarItem type="calendar" label="📅" title="Date" />
       </div>
     </div>

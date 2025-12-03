@@ -1,16 +1,17 @@
 export type ElementType =
-  | 'text'
-  | 'button'
-  | 'image'
-  | 'video'
-  | 'header'
-  | 'footer'
-  | 'card'
-  | 'carousel'
-  | 'select'
-  | 'input-number'
-  | 'calendar'
-  | 'title';
+  | "text"
+  | "button"
+  | "image"
+  | "video"
+  | "header"
+  | "footer"
+  | "card"
+  | "carousel"
+  | "select"
+  | "input-number"
+  | "input-email"
+  | "calendar"
+  | "title";
 
 export interface Slide {
   title: string;
