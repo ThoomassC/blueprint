@@ -77,25 +77,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectedId: null,
   isPreviewMode: false,
   canvasDimensions: { width: 800, height: 1000 },
-
-  // 3. AJOUT: Initialisation de la couleur par défaut
   canvasBackgroundColor: '#ffffff',
 
-  // 4. AJOUT: Implémentation du setter
   setCanvasBackgroundColor: (color) => {
     set({ canvasBackgroundColor: color });
-    // Optionnel : ajouter une annonce audio
-    // audioDescription.speak(`Couleur de fond changée`, "low");
-  },
-
-  // 3. AJOUT: Initialisation de la couleur par défaut
-  canvasBackgroundColor: '#ffffff',
-
-  // 4. AJOUT: Implémentation du setter
-  setCanvasBackgroundColor: (color) => {
-    set({ canvasBackgroundColor: color });
-    // Optionnel : ajouter une annonce audio
-    // audioDescription.speak(`Couleur de fond changée`, "low");
   },
 
   centerElementOnCanvas: (id) => {
