@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -7,13 +7,13 @@ import {
   useSensor,
   useSensors,
   PointerSensor,
-} from '@dnd-kit/core';
-import { Sidebar } from './components/Editor/Sidebar';
-import { Canvas } from './components/Editor/Canvas';
-import { useEditorStore } from './store/useEditorStore';
-import { audioDescription } from './services/audioDescription';
-import type { ElementType } from './types/editor';
-import './App.css';
+} from "@dnd-kit/core";
+import { Sidebar } from "./components/Editor/Sidebar";
+import { Canvas } from "./components/Editor/Canvas";
+import { useEditorStore } from "./store/useEditorStore";
+import { audioDescription } from "./services/audioDescription";
+import type { ElementType } from "./types/editor";
+import "./App.css";
 
 function App() {
   const addElement = useEditorStore((state) => state.addElement);
@@ -35,7 +35,7 @@ function App() {
   const toggleAudio = () => {
     setIsAudioEnabled(!isAudioEnabled);
     if (!isAudioEnabled) {
-      audioDescription.announceSuccess('Audio description activée');
+      audioDescription.announceSuccess("Audio description activée");
     }
   };
 
@@ -52,18 +52,18 @@ function App() {
       if (!currentSelectedId) return;
       const activeElement = document.activeElement?.tagName;
       const isTyping =
-        activeElement === 'INPUT' || activeElement === 'TEXTAREA';
+        activeElement === "INPUT" || activeElement === "TEXTAREA";
 
       if (isTyping) return;
 
-      if (event.key === 'Delete' || event.key === 'Backspace') {
+      if (event.key === "Delete" || event.key === "Backspace") {
         event.preventDefault();
         removeElement(currentSelectedId);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown);
     };
   }, [removeElement]);
 
@@ -76,7 +76,7 @@ function App() {
     const { active, over, delta } = event;
     setActiveDragType(null);
 
-    if (!over || over.id !== 'canvas-drop-zone') return;
+    if (!over || over.id !== "canvas-drop-zone") return;
 
     const type = active.data.current?.type as ElementType;
     const isCanvasElement = active.data.current?.isCanvasElement;
@@ -95,7 +95,7 @@ function App() {
       }
     } else {
       const canvasRect = document
-        .querySelector('.page-sheet')
+        .querySelector(".page-sheet")
         ?.getBoundingClientRect();
       const dropX = active.rect.current?.translated
         ? active.rect.current.translated.left - (canvasRect?.left ?? 0)
@@ -110,21 +110,21 @@ function App() {
 
   const handleExport = () => {
     const fileNameInput = window.prompt(
-      'Entrez le nom de votre fichier (ex: ma-page) :',
+      "Entrez le nom de votre fichier (ex: ma-page) :",
       `blueprint-${new Date().toISOString().slice(0, 10)}`
     );
 
     if (fileNameInput === null) return;
 
     let fileName = fileNameInput.trim();
-    if (!fileName) fileName = 'export-sans-nom';
-    if (!fileName.endsWith('.json')) fileName += '.json';
+    if (!fileName) fileName = "export-sans-nom";
+    if (!fileName.endsWith(".json")) fileName += ".json";
 
     const jsonString = getJSON();
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = fileName;
 
@@ -137,18 +137,18 @@ function App() {
 
   const getOverlayLabel = (type: ElementType) => {
     switch (type) {
-      case 'header':
-        return 'En-tête';
-      case 'footer':
-        return 'Pied de page';
-      case 'button':
-        return 'Bouton';
-      case 'text':
-        return 'Texte';
-      case 'card':
-        return 'Carte';
+      case "header":
+        return "En-tête";
+      case "footer":
+        return "Pied de page";
+      case "button":
+        return "Bouton";
+      case "text":
+        return "Texte";
+      case "card":
+        return "Carte";
       default:
-        return 'Elément';
+        return "Elément";
     }
   };
 
@@ -167,13 +167,13 @@ function App() {
           <div className="header-center">
             <div className="mode-toggle">
               <button
-                className={`toggle-btn ${!isPreviewMode ? 'active' : ''}`}
+                className={`toggle-btn ${!isPreviewMode ? "active" : ""}`}
                 onClick={() => isPreviewMode && togglePreviewMode()}
               >
                 ✏️ Édition
               </button>
               <button
-                className={`toggle-btn ${isPreviewMode ? 'active' : ''}`}
+                className={`toggle-btn ${isPreviewMode ? "active" : ""}`}
                 onClick={() => !isPreviewMode && togglePreviewMode()}
               >
                 👁️ Aperçu
@@ -182,17 +182,6 @@ function App() {
           </div>
 
           <div className="header-actions">
-            <button
-              onClick={toggleAudio}
-              className="btn-audio"
-              title={
-                isAudioEnabled
-                  ? "Désactiver l'audio description"
-                  : "Activer l'audio description"
-              }
-            >
-              {isAudioEnabled ? '🔊' : '🔇'} Audio
-            </button>
             <button onClick={handleExport} className="btn-export">
               📥 Télécharger JSON
             </button>
