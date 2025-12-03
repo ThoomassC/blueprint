@@ -103,7 +103,7 @@ export const Canvas = () => {
         <div
           style={{
             position: "absolute",
-            top: "20px",
+            top: "2px",
             left: "20px",
             zIndex: 9999,
             pointerEvents: "none",
