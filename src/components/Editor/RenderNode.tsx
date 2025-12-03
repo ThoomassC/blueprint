@@ -206,7 +206,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               top: "50%",
               transform: "translateY(-50%)",
               fontSize: "16px",
-              color: "#666",
+              color: element.style?.color || "#666",
               pointerEvents: "none",
             }}
           >
@@ -225,6 +225,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               borderRadius: "8px",
               fontSize: "14px",
               fontFamily: styles.fontFamily,
+              backgroundColor: "#ffffff",
+              color: element.style?.color || "#000000",
               transition: "border-color 0.2s",
               outline: "none",
               boxSizing: "border-box",
@@ -293,7 +295,6 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             border: "2px solid #3498db",
             borderRadius: "12px",
             padding: "20px",
-            backgroundColor: "#f8f9fa",
             minWidth: "300px",
             maxWidth: "500px",
           }}
@@ -308,7 +309,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             style={{
               marginTop: 0,
               marginBottom: "15px",
-              color: "#2c3e50",
+              color: element.style?.color || "#2c3e50",
               fontFamily: styles.fontFamily,
             }}
           >
@@ -396,6 +397,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           borderRadius: "8px",
                           fontSize: "14px",
                           fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
                           outline: "none",
                           boxSizing: "border-box",
                         }}
@@ -419,6 +422,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           borderRadius: "8px",
                           fontSize: "14px",
                           fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
                           outline: "none",
                           boxSizing: "border-box",
                         }}
@@ -442,6 +447,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           borderRadius: "8px",
                           fontSize: "14px",
                           fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
                           outline: "none",
                           boxSizing: "border-box",
                         }}
@@ -464,6 +471,8 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                           borderRadius: "8px",
                           fontSize: "14px",
                           fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
                           outline: "none",
                           boxSizing: "border-box",
                         }}
