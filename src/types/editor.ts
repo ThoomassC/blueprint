@@ -1,23 +1,23 @@
 export type ElementType =
-  | 'text'
-  | 'image'
-  | 'video'
-  | 'button'
-  | 'header'
-  | 'footer'
-  | 'card'
-  | 'input-text'
-  | 'input-email'
-  | 'input-number'
-  | 'input-form'
-  | 'select'
-  | 'calendar'
-  | 'map'
-  | 'title'
-  | 'carousel'
-  | 'textarea'
-  | 'heading'
-  | 'input';
+  | "text"
+  | "image"
+  | "video"
+  | "button"
+  | "header"
+  | "footer"
+  | "card"
+  | "input-text"
+  | "input-email"
+  | "input-number"
+  | "input-form"
+  | "select"
+  | "calendar"
+  | "map"
+  | "title"
+  | "carousel"
+  | "textarea"
+  | "heading"
+  | "input";
 
 export interface MapMarker {
   id: string;
@@ -49,35 +49,20 @@ export interface EditorElement {
     padding?: string;
     borderRadius?: string;
     border?: string;
-    textAlign?: 'left' | 'center' | 'right' | string;
-    display?: 'flex' | 'block' | 'inline-block' | 'none' | string;
+    display?: "flex" | "block" | "inline-block" | "none" | string;
     flexDirection?:
-      | 'row'
-      | 'column'
-      | 'row-reverse'
-      | 'column-reverse'
-      | string;
-    alignItems?:
-      | 'flex-start'
-      | 'center'
-      | 'flex-end'
-      | 'stretch'
-      | 'baseline'
-      | string;
-    justifyContent?:
-      | 'flex-start'
-      | 'center'
-      | 'flex-end'
-      | 'space-between'
-      | 'space-around'
+      | "row"
+      | "column"
+      | "row-reverse"
+      | "column-reverse"
       | string;
     gap?: string;
     zIndex?: number;
-    position?: 'absolute' | 'relative' | string;
+    position?: "absolute" | "relative" | string;
     left?: number | string;
     top?: number | string;
     cursor?: string;
-    // ✅ CORRECTION 1 : On remplace 'any' par les types valides en CSS (string ou number)
+    textAlign?: "left" | "center" | "right";
     [key: string]: string | number | undefined;
   };
   attributes?: {
