@@ -1,7 +1,7 @@
-import type { EditorElement } from "../../types/editor";
-import { useEditorStore } from "../../store/useEditorStore";
-import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import type { EditorElement } from '../../types/editor';
+import { useEditorStore } from '../../store/useEditorStore';
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 const getEmbedUrl = (url: string) => {
   if (url.includes("youtube.com/watch?v=")) {
@@ -25,28 +25,43 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
 
   const styles: React.CSSProperties = {
     ...element.style,
-    width: element.style?.width || "100%",
-    height: element.style?.height || "auto",
-    fontFamily: element.style?.fontFamily || "Arial",
+    width: element.style?.width || '100%',
+    height: element.style?.height || 'auto',
+    fontFamily: element.style?.fontFamily || 'Arial',
     color: element.style?.color || undefined,
     backgroundColor: element.style?.backgroundColor || undefined,
+    display: element.style?.justifyContent ? 'flex' : undefined,
+    alignItems:
+      element.style?.verticalAlign === 'top'
+        ? 'flex-start'
+        : element.style?.verticalAlign === 'middle'
+        ? 'center'
+        : element.style?.verticalAlign === 'bottom'
+        ? 'flex-end'
+        : undefined,
+    justifyContent: element.style?.justifyContent || undefined,
+    textAlign: element.style?.textAlign as
+      | 'left'
+      | 'center'
+      | 'right'
+      | undefined,
   };
 
   const interactionStyle = {
-    pointerEvents: isPreviewMode ? "auto" : "none",
+    pointerEvents: isPreviewMode ? 'auto' : 'none',
   } as const;
 
   switch (element.type) {
-    case "video": {
+    case 'video': {
       const isYoutube =
-        element.content.includes("youtube") ||
-        element.content.includes("youtu.be");
+        element.content.includes('youtube') ||
+        element.content.includes('youtu.be');
 
       if (isYoutube) {
         return (
           <iframe
             src={getEmbedUrl(element.content)}
-            style={{ ...styles, ...interactionStyle, border: "none" }}
+            style={{ ...styles, ...interactionStyle, border: 'none' }}
             title="Video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -59,7 +74,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             style={{
               ...styles,
               ...interactionStyle,
-              backgroundColor: element.style?.backgroundColor || "#000",
+              backgroundColor: element.style?.backgroundColor || '#000',
             }}
             controls
           >
@@ -69,25 +84,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
       }
     }
 
-    case "image":
+    case 'image':
       return (
         <img
           src={element.content}
           alt="Contenu"
-          style={{ ...styles, objectFit: "cover", display: "block" }}
+          style={{ ...styles, objectFit: 'cover', display: 'block' }}
           draggable={false}
         />
       );
 
-    case "select":
+    case 'select':
       return (
-        <div style={{ minWidth: "150px" }}>
+        <div style={{ minWidth: '150px' }}>
           <select
             style={{
               ...styles,
               ...interactionStyle,
-              width: "100%",
-              padding: "5px",
+              width: '100%',
+              padding: '5px',
             }}
             value={element.content}
             onChange={(e) =>
@@ -103,33 +118,33 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </div>
       );
 
-    case "card":
+    case 'card':
       return (
         <div
           style={{
             ...styles,
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            padding: "15px",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            padding: '15px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
           }}
         >
           <h3
             style={{
               marginTop: 0,
-              marginBottom: "10px",
-              color: element.style?.color || "#000",
-              fontFamily: element.style?.fontFamily || "Arial",
+              marginBottom: '10px',
+              color: element.style?.color || '#000',
+              fontFamily: element.style?.fontFamily || 'Arial',
             }}
           >
             {element.content}
           </h3>
           <p
             style={{
-              color: element.style?.color || "#666",
-              fontSize: "14px",
+              color: element.style?.color || '#666',
+              fontSize: '14px',
               margin: 0,
-              fontFamily: element.style?.fontFamily || "Arial",
+              fontFamily: element.style?.fontFamily || 'Arial',
             }}
           >
             {element.description}
@@ -137,20 +152,20 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </div>
       );
 
-    case "header":
+    case 'header':
       return (
         <header
           style={{
             ...styles,
-            display: "flex",
-            alignItems: "center",
-            padding: "0 20px",
+            display: 'flex',
+            alignItems: 'center',
+            padding: '0 20px',
           }}
         >
           <h2
             style={{
-              color: element.style?.color || "#000",
-              fontFamily: element.style?.fontFamily || "Arial",
+              color: element.style?.color || '#000',
+              fontFamily: element.style?.fontFamily || 'Arial',
             }}
           >
             {element.content}
@@ -158,21 +173,21 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </header>
       );
 
-    case "footer":
+    case 'footer':
       return (
         <footer
           style={{
             ...styles,
-            display: "flex",
-            justifyContent: "center",
-            padding: "10px",
-            alignItems: "center",
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '10px',
+            alignItems: 'center',
           }}
         >
           <small
             style={{
-              color: element.style?.color || "#000",
-              fontFamily: element.style?.fontFamily || "Arial",
+              color: element.style?.color || '#000',
+              fontFamily: element.style?.fontFamily || 'Arial',
             }}
           >
             {element.content}
@@ -180,25 +195,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </footer>
       );
 
-    case "title":
+    case 'title':
       return <h1 style={{ margin: 0, ...styles }}>{element.content}</h1>;
 
-    case "button":
+    case 'button':
       return (
         <button
           className="preview-btn"
           style={{
             ...styles,
-            backgroundColor: element.style?.backgroundColor || "#3498db",
-            color: element.style?.color || "#ffffff",
-            fontFamily: element.style?.fontFamily || "Arial",
+            backgroundColor: element.style?.backgroundColor || '#3498db',
+            color: element.style?.color || '#ffffff',
+            fontFamily: element.style?.fontFamily || 'Arial',
           }}
         >
           {element.content}
         </button>
       );
 
-    case "input-number":
+    case 'input-number':
       return (
         <input
           type="number"
@@ -206,7 +221,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
           style={{
             ...styles,
             ...interactionStyle,
-            padding: "5px",
+            padding: '5px',
           }}
           onChange={(e) =>
             updateElement(element.id, { content: e.target.value })
@@ -214,24 +229,24 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         />
       );
 
-    case "input-text":
+    case 'input-text':
       return (
         <input
           type="text"
           value={element.content}
-          placeholder={element.description || "Entrez du texte..."}
+          placeholder={element.description || 'Entrez du texte...'}
           style={{
             ...interactionStyle,
-            padding: "10px 12px",
-            width: "100%",
-            border: "2px solid #e0e0e0",
-            borderRadius: "8px",
-            fontSize: "14px",
-            fontFamily: element.style?.fontFamily || "Arial",
-            color: element.style?.color || "#000",
-            backgroundColor: element.style?.backgroundColor || "#ffffff",
-            outline: "none",
-            boxSizing: "border-box",
+            padding: '10px 12px',
+            width: '100%',
+            border: '2px solid #e0e0e0',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontFamily: element.style?.fontFamily || 'Arial',
+            color: element.style?.color || '#000',
+            backgroundColor: element.style?.backgroundColor || '#ffffff',
+            outline: 'none',
+            boxSizing: 'border-box',
           }}
           onChange={(e) =>
             updateElement(element.id, { content: e.target.value })
@@ -239,7 +254,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         />
       );
 
-    case "input-email": {
+    case 'input-email': {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isValidEmail = emailRegex.test(element.content);
       const hasError = element.content && !isValidEmail;
@@ -247,20 +262,20 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
       return (
         <div
           style={{
-            position: "relative",
-            display: "inline-block",
-            minWidth: "250px",
+            position: 'relative',
+            display: 'inline-block',
+            minWidth: '250px',
           }}
         >
           <span
             style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              fontSize: "16px",
-              color: element.style?.color || "#666",
-              pointerEvents: "none",
+              position: 'absolute',
+              left: '12px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '16px',
+              color: element.style?.color || '#666',
+              pointerEvents: 'none',
             }}
           >
             📧
@@ -272,33 +287,33 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             required
             style={{
               ...interactionStyle,
-              padding: "10px 12px 10px 40px",
-              width: "100%",
-              border: `2px solid ${hasError ? "#f44336" : "#e0e0e0"}`,
-              borderRadius: "8px",
-              fontSize: "14px",
+              padding: '10px 12px 10px 40px',
+              width: '100%',
+              border: `2px solid ${hasError ? '#f44336' : '#e0e0e0'}`,
+              borderRadius: '8px',
+              fontSize: '14px',
               fontFamily: styles.fontFamily,
-              backgroundColor: "#ffffff",
-              color: element.style?.color || "#000000",
-              transition: "border-color 0.2s",
-              outline: "none",
-              boxSizing: "border-box",
+              backgroundColor: '#ffffff',
+              color: element.style?.color || '#000000',
+              transition: 'border-color 0.2s',
+              outline: 'none',
+              boxSizing: 'border-box',
             }}
             onFocus={(e) => {
               if (!hasError) {
-                e.target.style.borderColor = "#4CAF50";
+                e.target.style.borderColor = '#4CAF50';
               }
             }}
             onBlur={(e) => {
               const value = e.target.value;
               if (value && !emailRegex.test(value)) {
                 setEmailError(
-                  "Veuillez entrer une adresse email valide avec @"
+                  'Veuillez entrer une adresse email valide avec @'
                 );
-                e.target.style.borderColor = "#f44336";
+                e.target.style.borderColor = '#f44336';
               } else {
-                setEmailError("");
-                e.target.style.borderColor = "#e0e0e0";
+                setEmailError('');
+                e.target.style.borderColor = '#e0e0e0';
               }
             }}
             onChange={(e) => {
@@ -306,95 +321,95 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               updateElement(element.id, { content: value });
               if (value && !emailRegex.test(value)) {
                 setEmailError(
-                  "Veuillez entrer une adresse email valide avec @"
+                  'Veuillez entrer une adresse email valide avec @'
                 );
               } else {
-                setEmailError("");
+                setEmailError('');
               }
             }}
           />
           {hasError && (
             <div
               style={{
-                color: "#f44336",
-                fontSize: "12px",
-                marginTop: "4px",
-                paddingLeft: "4px",
+                color: '#f44336',
+                fontSize: '12px',
+                marginTop: '4px',
+                paddingLeft: '4px',
               }}
             >
-              {emailError || "Veuillez entrer une adresse email valide avec @"}
+              {emailError || 'Veuillez entrer une adresse email valide avec @'}
             </div>
           )}
         </div>
       );
     }
-    case "calendar":
+
+    case 'calendar':
       return (
         <input
           type="date"
           value={element.content}
-          style={{ ...interactionStyle, padding: "5px" }}
+          style={{ ...interactionStyle, padding: '5px' }}
           onChange={(e) =>
             updateElement(element.id, { content: e.target.value })
           }
         />
       );
 
-    case "input-form":
+    case 'input-form':
       return (
         <form
           style={{
             ...styles,
-            border: "2px solid #3498db",
-            borderRadius: "12px",
-            padding: "20px",
-            minWidth: "300px",
-            maxWidth: "500px",
+            border: '2px solid #3498db',
+            borderRadius: '12px',
+            padding: '20px',
+            minWidth: '300px',
+            maxWidth: '500px',
           }}
           onSubmit={(e) => {
             e.preventDefault();
             if (isPreviewMode) {
-              alert("Formulaire soumis !");
+              alert('Formulaire soumis !');
             }
           }}
         >
           <h3
             style={{
               marginTop: 0,
-              marginBottom: "15px",
-              color: element.style?.color || "#2c3e50",
+              marginBottom: '15px',
+              color: element.style?.color || '#2c3e50',
               fontFamily: styles.fontFamily,
             }}
           >
             {element.content}
           </h3>
 
-          {/* Inputs du formulaire */}
           {element.children && element.children.length > 0 ? (
             <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
               {element.children.map((child) => (
-                <div key={child.id} style={{ position: "relative" }}>
+                <div key={child.id} style={{ position: 'relative' }}>
                   {!isPreviewMode && (
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "4px",
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px',
                       }}
                     >
                       <input
                         type="text"
-                        value={child.description || ""}
+                        value={child.description || ''}
                         placeholder="Label du champ..."
                         style={{
                           flex: 1,
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          border: "1px solid #ddd",
-                          borderRadius: "4px",
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -406,13 +421,13 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                       <button
                         type="button"
                         style={{
-                          padding: "4px 8px",
-                          fontSize: "18px",
-                          border: "none",
-                          background: "#f44336",
-                          color: "white",
-                          borderRadius: "4px",
-                          cursor: "pointer",
+                          padding: '4px 8px',
+                          fontSize: '18px',
+                          border: 'none',
+                          background: '#f44336',
+                          color: 'white',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -426,34 +441,32 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                   {child.description && isPreviewMode && (
                     <label
                       style={{
-                        display: "block",
-                        fontSize: "13px",
-                        fontWeight: "bold",
-                        marginBottom: "4px",
-                        color: "#555",
+                        display: 'block',
+                        fontSize: '13px',
+                        fontWeight: 'bold',
+                        marginBottom: '4px',
+                        color: '#555',
                       }}
                     >
                       {child.description}
                     </label>
                   )}
                   <div onClick={(e) => e.stopPropagation()}>
-                    {child.type === "input-text" && (
+                    {child.type === 'input-text' && (
                       <input
                         type="text"
                         value={child.content}
-                        placeholder={child.description || "Entrez du texte..."}
+                        placeholder={child.description || 'Entrez du texte...'}
                         style={{
                           ...interactionStyle,
-                          padding: "10px 12px",
-                          width: "100%",
-                          border: "2px solid #e0e0e0",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: element.style?.fontFamily || "Arial",
-                          backgroundColor: "#ffffff",
-                          color: element.style?.color || "#000000",
-                          outline: "none",
-                          boxSizing: "border-box",
+                          padding: '10px 12px',
+                          width: '100%',
+                          border: '2px solid #e0e0e0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: element.style?.fontFamily || 'Arial',
+                          outline: 'none',
+                          boxSizing: 'border-box',
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -462,23 +475,21 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                         }
                       />
                     )}
-                    {child.type === "input-email" && (
+                    {child.type === 'input-email' && (
                       <input
                         type="email"
                         value={child.content}
-                        placeholder={child.description || "exemple@email.com"}
+                        placeholder={child.description || 'exemple@email.com'}
                         style={{
                           ...interactionStyle,
-                          padding: "10px 12px",
-                          width: "100%",
-                          border: "2px solid #e0e0e0",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: element.style?.fontFamily || "Arial",
-                          backgroundColor: "#ffffff",
-                          color: element.style?.color || "#000000",
-                          outline: "none",
-                          boxSizing: "border-box",
+                          padding: '10px 12px',
+                          width: '100%',
+                          border: '2px solid #e0e0e0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: element.style?.fontFamily || 'Arial',
+                          outline: 'none',
+                          boxSizing: 'border-box',
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -487,23 +498,21 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                         }
                       />
                     )}
-                    {child.type === "input-number" && (
+                    {child.type === 'input-number' && (
                       <input
                         type="number"
                         value={child.content}
-                        placeholder={child.description || "0"}
+                        placeholder={child.description || '0'}
                         style={{
                           ...interactionStyle,
-                          padding: "10px 12px",
-                          width: "100%",
-                          border: "2px solid #e0e0e0",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: element.style?.fontFamily || "Arial",
-                          backgroundColor: "#ffffff",
-                          color: element.style?.color || "#000000",
-                          outline: "none",
-                          boxSizing: "border-box",
+                          padding: '10px 12px',
+                          width: '100%',
+                          border: '2px solid #e0e0e0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: element.style?.fontFamily || 'Arial',
+                          outline: 'none',
+                          boxSizing: 'border-box',
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -512,22 +521,20 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                         }
                       />
                     )}
-                    {child.type === "calendar" && (
+                    {child.type === 'calendar' && (
                       <input
                         type="date"
                         value={child.content}
                         style={{
                           ...interactionStyle,
-                          padding: "10px 12px",
-                          width: "100%",
-                          border: "2px solid #e0e0e0",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: element.style?.fontFamily || "Arial",
-                          backgroundColor: "#ffffff",
-                          color: element.style?.color || "#000000",
-                          outline: "none",
-                          boxSizing: "border-box",
+                          padding: '10px 12px',
+                          width: '100%',
+                          border: '2px solid #e0e0e0',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontFamily: element.style?.fontFamily || 'Arial',
+                          outline: 'none',
+                          boxSizing: 'border-box',
                         }}
                         onChange={(e) =>
                           updateFormChild(element.id, child.id, {
@@ -541,7 +548,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               ))}
             </div>
           ) : (
-            <p style={{ color: "#666", fontSize: "14px", fontStyle: "italic" }}>
+            <p style={{ color: '#666', fontSize: '14px', fontStyle: 'italic' }}>
               Ajoutez des champs ci-dessous
             </p>
           )}
@@ -697,6 +704,13 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </form>
       );
 
+    default:
+      return (
+        <p className="preview-text" style={styles}>
+          {element.content}
+        </p>
+      );
+  }
     default:
       return (
         <p className="preview-text" style={styles}>
