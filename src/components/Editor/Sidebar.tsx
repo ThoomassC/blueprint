@@ -20,6 +20,7 @@ export const Sidebar = () => {
         <SidebarItem type="select" label="▼" title="Menu" />
         <SidebarItem type="input-number" label="123" title="Nombre" />
         <SidebarItem type="input-email" label="📧" title="Email" />
+        <SidebarItem type="input-form" label="📝" title="Formulaire" />
         <SidebarItem type="calendar" label="📅" title="Date" />
       </div>
     </div>
