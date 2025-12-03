@@ -30,60 +30,44 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [emailError, setEmailError] = useState<string>("");
 
-    const styles: React.CSSProperties = {
-        ...element.style,
-        width: element.style?.width || "100%",
-        height: element.style?.height || "auto",
-        fontFamily: element.style?.fontFamily || "Arial",
-        color: element.style?.color || undefined,
-        backgroundColor: element.style?.backgroundColor || undefined,
-        position: element.style?.position as React.CSSProperties["position"],
-        display:
-            (element.style?.display as React.CSSProperties["display"]) ||
-            (element.style?.justifyContent ? "flex" : undefined),
-        flexDirection: element.style
-            ?.flexDirection as React.CSSProperties["flexDirection"],
-        alignItems:
-            element.style?.verticalAlign === "top"
-                ? "flex-start"
-                : element.style?.verticalAlign === "middle"
-                    ? "center"
-                    : element.style?.verticalAlign === "bottom"
-                        ? "flex-end"
-                        : (element.style?.alignItems as React.CSSProperties["alignItems"]),
-        justifyContent: element.style
-            ?.justifyContent as React.CSSProperties["justifyContent"],
-        textAlign: element.style?.textAlign as React.CSSProperties["textAlign"],
-        borderRadius: element.style
-            ?.borderRadius as React.CSSProperties["borderRadius"],
-        boxShadow: element.style?.boxShadow as React.CSSProperties["boxShadow"],
-    };
+    case "image":
+      return (
+        <img
+          src={element.content}
+          alt="Contenu"
+          style={{ ...styles, objectFit: "cover", display: "block" }}
+          draggable={false}
+        />
+      );
 
-    const interactionStyle = {
-        pointerEvents: isPreviewMode ? "auto" : "none",
-    } as const;
+    case "logo":
+      return (
+        <img
+          src={element.content}
+          alt="Logo du site"
+          style={{
+            ...styles,
+            objectFit: "contain",
+            display: "block",
+            cursor: "pointer",
+          }}
+          draggable={false}
+        />
+      );
 
-    switch (element.type) {
-        case "carousel": {
-            // Récupération des items mixtes (définis dans l'étape précédente)
-            const items = element.carouselItems || [];
-
-            if (items.length === 0) {
-                return (
-                    <div style={{
-                        ...styles,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        backgroundColor: '#f8f9fa',
-                        border: '1px dashed #ced4da',
-                        color: '#6c757d',
-                        padding: '20px',
-                        minHeight: '150px'
-                    }}>
-                        Carrousel vide (Ajoutez des éléments)
-                    </div>
-                );
+    case "select":
+      return (
+        <div style={{ minWidth: "150px" }}>
+          <select
+            style={{
+              ...styles,
+              ...interactionStyle,
+              width: "100%",
+              padding: "5px",
+            }}
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
             }
 
             // Sécurité pour l'index
