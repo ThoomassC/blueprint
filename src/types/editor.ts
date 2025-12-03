@@ -1,24 +1,33 @@
 export type ElementType =
-  | 'text'
-  | 'button'
-  | 'image'
-  | 'video'
-  | 'header'
-  | 'footer'
-  | 'card'
-  | 'carousel'
-  | 'select'
-  | 'input-number'
-  | 'input-email'
-  | 'input-text'
-  | 'input-form'
-  | 'calendar'
-  | 'title';
+  | "text"
+  | "button"
+  | "image"
+  | "video"
+  | "header"
+  | "footer"
+  | "card"
+  | "carousel"
+  | "select"
+  | "input-number"
+  | "input-email"
+  | "input-text"
+  | "input-form"
+  | "calendar"
+  | "title"
+  | "map";
 
 export interface Slide {
   title: string;
   description: string;
   imageUrl?: string;
+}
+
+export interface MapMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  color?: string;
 }
 
 export interface EditorElement {
@@ -30,6 +39,8 @@ export interface EditorElement {
   options?: string[];
   description?: string;
   children?: EditorElement[];
+  coordinates?: { lat: number; lng: number };
+  markers?: MapMarker[];
 
   x: number;
   y: number;
@@ -48,9 +59,9 @@ export interface EditorElement {
     fontSize?: string;
     borderRadius?: string;
     fontFamily?: string;
-    verticalAlign?: 'top' | 'middle' | 'bottom';
-    horizontalAlign?: 'left' | 'center' | 'right';
-    textAlign?: 'left' | 'center' | 'right';
-    justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between';
+    verticalAlign?: "top" | "middle" | "bottom";
+    horizontalAlign?: "left" | "center" | "right";
+    textAlign?: "left" | "center" | "right";
+    justifyContent?: "flex-start" | "center" | "flex-end" | "space-between";
   };
 }

@@ -1,8 +1,8 @@
-import { useDraggable } from '@dnd-kit/core';
-import type { EditorElement } from '../../types/editor';
-import { RenderNode } from './RenderNode';
-import { useEditorStore } from '../../store/useEditorStore';
-import React from 'react';
+import { useDraggable } from "@dnd-kit/core";
+import type { EditorElement } from "../../types/editor";
+import { RenderNode } from "./RenderNode";
+import { useEditorStore } from "../../store/useEditorStore";
+import React from "react";
 
 interface Props {
   element: EditorElement;
@@ -61,7 +61,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   video: {
     showContent: false, // On utilise un champ URL personnalisé
@@ -69,7 +69,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   card: {
     showContent: false, // Champs personnalisés
@@ -77,7 +77,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['card'],
+    customFields: ["card"],
   },
   select: {
     showContent: false, // Gestion des options
@@ -85,7 +85,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['options'],
+    customFields: ["options"],
   },
   carousel: {
     showContent: false, // Gestion des slides
@@ -93,7 +93,15 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: false,
     showTechConfig: true,
-    customFields: ['slides'],
+    customFields: ["slides"],
+  },
+  map: {
+    showContent: false, // Champs personnalisés pour la localisation
+    showStyle: true,
+    showColors: false,
+    showFont: false,
+    showTechConfig: true,
+    customFields: ["location"],
   },
 };
 
@@ -119,18 +127,18 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     });
 
   const style: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     left: element.x + (transform ? transform.x : 0),
     top: element.y + (transform ? transform.y : 0),
-    cursor: isPreviewMode ? 'default' : isDragging ? 'grabbing' : 'grab',
+    cursor: isPreviewMode ? "default" : isDragging ? "grabbing" : "grab",
     zIndex: isDragging ? 1000 : isSelected ? 100 : 1,
-    outline: isSelected ? '2px solid #3498db' : 'none',
+    outline: isSelected ? "2px solid #3498db" : "none",
   };
 
   const config = TOOLBAR_CONFIG[element.type] || TOOLBAR_CONFIG.text;
 
   const updateStyle = (key: string, value: string | number) => {
-    const finalValue = typeof value === 'number' ? `${value}px` : value;
+    const finalValue = typeof value === "number" ? `${value}px` : value;
     updateElement(element.id, {
       style: { ...element.style, [key]: finalValue },
     });
@@ -166,19 +174,19 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       let newY = initialY;
 
       // Redimensionner depuis la droite/gauche
-      if (direction.includes('e')) {
+      if (direction.includes("e")) {
         newWidth = initialWidth + deltaX;
       }
-      if (direction.includes('w')) {
+      if (direction.includes("w")) {
         newWidth = initialWidth - deltaX;
         newX = initialX + deltaX; // Ajuster X pour que l'élément grandisse vers la gauche
       }
 
       // Redimensionner depuis le bas/haut
-      if (direction.includes('s')) {
+      if (direction.includes("s")) {
         newHeight = initialHeight + deltaY;
       }
-      if (direction.includes('n')) {
+      if (direction.includes("n")) {
         newHeight = initialHeight - deltaY;
         newY = initialY + deltaY; // Ajuster Y pour que l'élément grandisse vers le haut
       }
@@ -187,11 +195,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       newHeight = Math.max(MIN_SIZE, Math.min(MAX_SIZE, newHeight));
 
       setResizePreview({ width: newWidth, height: newHeight });
-      updateStyle('width', newWidth);
-      updateStyle('height', newHeight);
+      updateStyle("width", newWidth);
+      updateStyle("height", newHeight);
 
       // Mettre à jour la position uniquement si on redimensionne depuis l'ouest ou le nord
-      if (direction.includes('w') || direction.includes('n')) {
+      if (direction.includes("w") || direction.includes("n")) {
         updateElement(element.id, { x: newX, y: newY });
       }
     };
@@ -199,16 +207,16 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     const handleMouseUp = () => {
       setIsResizing(false);
       setResizePreview(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const updateCurrentSlide = (
-    key: 'title' | 'description' | 'imageUrl',
+    key: "title" | "description" | "imageUrl",
     value: string
   ) => {
     const currentIndex = parseInt(element.content) || 0;
@@ -222,40 +230,40 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const renderCustomFields = () => {
     const currentIndex = parseInt(element.content) || 0;
 
-    if (config.customFields?.includes('slides')) {
+    if (config.customFields?.includes("slides")) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
             SLIDE {currentIndex + 1}
           </label>
           <input
             type="text"
             placeholder="Titre"
             className="toolbar-input"
-            value={element.slides?.[currentIndex]?.title || ''}
-            onChange={(e) => updateCurrentSlide('title', e.target.value)}
+            value={element.slides?.[currentIndex]?.title || ""}
+            onChange={(e) => updateCurrentSlide("title", e.target.value)}
           />
           <input
             type="text"
             placeholder="URL Image"
             className="toolbar-input"
-            value={element.slides?.[currentIndex]?.imageUrl || ''}
-            onChange={(e) => updateCurrentSlide('imageUrl', e.target.value)}
+            value={element.slides?.[currentIndex]?.imageUrl || ""}
+            onChange={(e) => updateCurrentSlide("imageUrl", e.target.value)}
           />
           <textarea
             placeholder="Description"
             className="toolbar-textarea"
-            value={element.slides?.[currentIndex]?.description || ''}
-            onChange={(e) => updateCurrentSlide('description', e.target.value)}
+            value={element.slides?.[currentIndex]?.description || ""}
+            onChange={(e) => updateCurrentSlide("description", e.target.value)}
           />
-          <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+          <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
             <button
               className="btn-add-option"
               onClick={() =>
                 updateElement(element.id, {
                   slides: [
                     ...(element.slides || []),
-                    { title: 'New', description: '', imageUrl: '' },
+                    { title: "New", description: "", imageUrl: "" },
                   ],
                 })
               }
@@ -267,7 +275,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               onClick={() =>
                 updateElement(element.id, {
                   slides: element.slides?.filter((_, i) => i !== currentIndex),
-                  content: '0',
+                  content: "0",
                 })
               }
             >
@@ -278,16 +286,16 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('url')) {
+    if (config.customFields?.includes("url")) {
       return (
         <>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>
-            URL {element.type === 'image' ? 'Image' : 'Vidéo'}
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            URL {element.type === "image" ? "Image" : "Vidéo"}
           </label>
           <input
             className="toolbar-input"
             placeholder={`https://example.com/${element.type}.${
-              element.type === 'image' ? 'jpg' : 'mp4'
+              element.type === "image" ? "jpg" : "mp4"
             }`}
             value={element.content}
             onChange={(e) =>
@@ -298,10 +306,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('card')) {
+    if (config.customFields?.includes("card")) {
       return (
         <>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>Titre</label>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Titre</label>
           <input
             className="toolbar-input"
             placeholder="Titre de la carte"
@@ -310,7 +318,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               updateElement(element.id, { content: e.target.value })
             }
           />
-          <label style={{ fontSize: '9px', color: '#aaa', marginTop: '5px' }}>
+          <label style={{ fontSize: "9px", color: "#aaa", marginTop: "5px" }}>
             Description
           </label>
           <textarea
@@ -325,12 +333,12 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('options')) {
+    if (config.customFields?.includes("options")) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>Options</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Options</label>
           {element.options?.map((opt, i) => (
-            <div key={i} style={{ display: 'flex', gap: '5px' }}>
+            <div key={i} style={{ display: "flex", gap: "5px" }}>
               <input
                 value={opt}
                 className="toolbar-input-small"
@@ -369,6 +377,192 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
+    if (config.customFields?.includes("location")) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            NOM DE LA CARTE
+          </label>
+          <input
+            className="toolbar-input"
+            placeholder="Nom du lieu"
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
+            }
+          />
+
+          <div
+            style={{
+              marginTop: "10px",
+              borderTop: "1px solid #ddd",
+              paddingTop: "10px",
+            }}
+          >
+            <label style={{ fontSize: "9px", color: "#aaa" }}>
+              POINTS SUR LA CARTE
+            </label>
+            {(element.markers || []).map((marker, i) => (
+              <div
+                key={marker.id}
+                style={{
+                  marginTop: "5px",
+                  padding: "8px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "4px",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "5px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "8px",
+                      color: "#666",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    POINT {i + 1}
+                  </label>
+                  <button
+                    className="btn-mini-delete"
+                    onClick={() =>
+                      updateElement(element.id, {
+                        markers: element.markers?.filter(
+                          (m) => m.id !== marker.id
+                        ),
+                      })
+                    }
+                  >
+                    🗑️
+                  </button>
+                </div>
+                <input
+                  className="toolbar-input"
+                  placeholder="Nom du point"
+                  value={marker.label}
+                  style={{ marginBottom: "3px", fontSize: "11px" }}
+                  onChange={(e) => {
+                    const newMarkers = [...(element.markers || [])];
+                    newMarkers[i] = { ...marker, label: e.target.value };
+                    updateElement(element.id, { markers: newMarkers });
+                  }}
+                />
+                <div
+                  style={{ display: "flex", gap: "3px", marginBottom: "3px" }}
+                >
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lat"
+                    value={marker.lat}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lat: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lng"
+                    value={marker.lng}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lng: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                </div>
+                <div
+                  style={{ display: "flex", gap: "3px", alignItems: "center" }}
+                >
+                  <label style={{ fontSize: "8px", color: "#666" }}>
+                    Couleur:
+                  </label>
+                  <input
+                    type="color"
+                    value={marker.color || "#FF5252"}
+                    style={{
+                      width: "40px",
+                      height: "25px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                    }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        color: e.target.value,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      fontSize: "9px",
+                      color: "#999",
+                      textAlign: "right",
+                    }}
+                  >
+                    {marker.color || "#FF5252"}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              className="btn-add-option"
+              style={{ marginTop: "5px", width: "100%" }}
+              onClick={() => {
+                // Couleurs prédéfinies pour varier automatiquement
+                const colors = [
+                  "#FF5252",
+                  "#4CAF50",
+                  "#2196F3",
+                  "#FFC107",
+                  "#9C27B0",
+                  "#FF9800",
+                ];
+                const colorIndex =
+                  (element.markers?.length || 0) % colors.length;
+
+                const newMarker = {
+                  id: `marker-${Date.now()}`,
+                  lat: element.coordinates?.lat || 48.8566,
+                  lng: element.coordinates?.lng || 2.3522,
+                  label: `Point ${(element.markers?.length || 0) + 1}`,
+                  color: colors[colorIndex],
+                };
+                updateElement(element.id, {
+                  markers: [...(element.markers || []), newMarker],
+                });
+              }}
+            >
+              + Ajouter un point
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -384,11 +578,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 📝 CONTENU
@@ -414,11 +608,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 🎨 STYLE
@@ -426,51 +620,51 @@ export const DraggableCanvasElement = ({ element }: Props) => {
 
               {config.showColors && (
                 <div
-                  style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}
+                  style={{ display: "flex", gap: "10px", marginBottom: "8px" }}
                 >
                   <div>
                     <label
                       style={{
-                        fontSize: '8px',
-                        color: '#aaa',
-                        display: 'block',
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
                       }}
                     >
                       Fond
                     </label>
                     <input
                       type="color"
-                      value={element.style?.backgroundColor || '#ffffff'}
+                      value={element.style?.backgroundColor || "#ffffff"}
                       onChange={(e) =>
-                        updateStyle('backgroundColor', e.target.value)
+                        updateStyle("backgroundColor", e.target.value)
                       }
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        border: 'none',
-                        cursor: 'pointer',
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                     />
                   </div>
                   <div>
                     <label
                       style={{
-                        fontSize: '8px',
-                        color: '#aaa',
-                        display: 'block',
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
                       }}
                     >
                       Texte
                     </label>
                     <input
                       type="color"
-                      value={element.style?.color || '#000000'}
-                      onChange={(e) => updateStyle('color', e.target.value)}
+                      value={element.style?.color || "#000000"}
+                      onChange={(e) => updateStyle("color", e.target.value)}
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        border: 'none',
-                        cursor: 'pointer',
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                     />
                   </div>
@@ -481,18 +675,18 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                 <>
                   <label
                     style={{
-                      fontSize: '9px',
-                      color: '#aaa',
-                      display: 'block',
-                      marginBottom: '2px',
+                      fontSize: "9px",
+                      color: "#aaa",
+                      display: "block",
+                      marginBottom: "2px",
                     }}
                   >
                     Police
                   </label>
                   <select
                     className="toolbar-input"
-                    value={element.style?.fontFamily || 'Arial'}
-                    onChange={(e) => updateStyle('fontFamily', e.target.value)}
+                    value={element.style?.fontFamily || "Arial"}
+                    onChange={(e) => updateStyle("fontFamily", e.target.value)}
                   >
                     <option value="Arial">Arial</option>
                     <option value="Courier New">Courier</option>
@@ -510,27 +704,27 @@ export const DraggableCanvasElement = ({ element }: Props) => {
           <div className="toolbar-section">
             <label
               style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                color: '#888',
-                marginBottom: '5px',
-                display: 'block',
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#888",
+                marginBottom: "5px",
+                display: "block",
               }}
             >
               📏 DIMENSIONS
             </label>
 
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
               <div style={{ flex: 1 }}>
                 <label
                   style={{
-                    fontSize: '8px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "8px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
-                  L:{' '}
+                  L:{" "}
                   {resizePreview
                     ? Math.round(resizePreview.width)
                     : Math.round(extractNumericValue(element.style?.width))}
@@ -540,11 +734,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="range"
                   value={extractNumericValue(element.style?.width)}
                   onChange={(e) =>
-                    updateStyle('width', parseInt(e.target.value))
+                    updateStyle("width", parseInt(e.target.value))
                   }
                   style={{
-                    width: '100%',
-                    cursor: 'pointer',
+                    width: "100%",
+                    cursor: "pointer",
                   }}
                   min="40"
                   max="1000"
@@ -554,15 +748,15 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   value={Math.round(extractNumericValue(element.style?.width))}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 100;
-                    updateStyle('width', Math.max(40, Math.min(1000, val)));
+                    updateStyle("width", Math.max(40, Math.min(1000, val)));
                   }}
                   style={{
-                    width: '100%',
-                    padding: '4px',
-                    fontSize: '11px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    marginTop: '2px',
+                    width: "100%",
+                    padding: "4px",
+                    fontSize: "11px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    marginTop: "2px",
                   }}
                   min="40"
                   max="1000"
@@ -571,13 +765,13 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               <div style={{ flex: 1 }}>
                 <label
                   style={{
-                    fontSize: '8px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "8px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
-                  H:{' '}
+                  H:{" "}
                   {resizePreview
                     ? Math.round(resizePreview.height)
                     : Math.round(extractNumericValue(element.style?.height))}
@@ -587,11 +781,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="range"
                   value={extractNumericValue(element.style?.height)}
                   onChange={(e) =>
-                    updateStyle('height', parseInt(e.target.value))
+                    updateStyle("height", parseInt(e.target.value))
                   }
                   style={{
-                    width: '100%',
-                    cursor: 'pointer',
+                    width: "100%",
+                    cursor: "pointer",
                   }}
                   min="40"
                   max="1000"
@@ -601,15 +795,15 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   value={Math.round(extractNumericValue(element.style?.height))}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 100;
-                    updateStyle('height', Math.max(40, Math.min(1000, val)));
+                    updateStyle("height", Math.max(40, Math.min(1000, val)));
                   }}
                   style={{
-                    width: '100%',
-                    padding: '4px',
-                    fontSize: '11px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    marginTop: '2px',
+                    width: "100%",
+                    padding: "4px",
+                    fontSize: "11px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    marginTop: "2px",
                   }}
                   min="40"
                   max="1000"
@@ -622,11 +816,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
           <div className="toolbar-section">
             <label
               style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                color: '#888',
-                marginBottom: '5px',
-                display: 'block',
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#888",
+                marginBottom: "5px",
+                display: "block",
               }}
             >
               📐 ALIGNEMENT
@@ -635,39 +829,39 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             {/* Alignement vertical */}
             <label
               style={{
-                fontSize: '9px',
-                color: '#aaa',
-                display: 'block',
-                marginBottom: '2px',
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
               }}
             >
               Vertical
             </label>
-            <div style={{ display: 'flex', gap: '3px', marginBottom: '8px' }}>
-              {['top', 'middle', 'bottom'].map((align) => (
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["top", "middle", "bottom"].map((align) => (
                 <button
                   key={align}
-                  onClick={() => updateStyle('verticalAlign', align)}
+                  onClick={() => updateStyle("verticalAlign", align)}
                   style={{
                     flex: 1,
-                    padding: '4px 8px',
-                    fontSize: '11px',
+                    padding: "4px 8px",
+                    fontSize: "11px",
                     backgroundColor:
                       element.style?.verticalAlign === align
-                        ? '#3498db'
-                        : '#e0e0e0',
+                        ? "#3498db"
+                        : "#e0e0e0",
                     color:
-                      element.style?.verticalAlign === align ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
+                      element.style?.verticalAlign === align ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
                     fontWeight:
                       element.style?.verticalAlign === align
-                        ? 'bold'
-                        : 'normal',
+                        ? "bold"
+                        : "normal",
                   }}
                 >
-                  {align === 'top' ? '↑' : align === 'middle' ? '↕️' : '↓'}
+                  {align === "top" ? "↑" : align === "middle" ? "↕️" : "↓"}
                 </button>
               ))}
             </div>
@@ -675,41 +869,41 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             {/* Alignement horizontal (élément) */}
             <label
               style={{
-                fontSize: '9px',
-                color: '#aaa',
-                display: 'block',
-                marginBottom: '2px',
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
               }}
             >
               Horizontal (élément)
             </label>
-            <div style={{ display: 'flex', gap: '3px', marginBottom: '8px' }}>
-              {['left', 'center', 'right'].map((align) => (
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["left", "center", "right"].map((align) => (
                 <button
                   key={align}
-                  onClick={() => updateStyle('horizontalAlign', align)}
+                  onClick={() => updateStyle("horizontalAlign", align)}
                   style={{
                     flex: 1,
-                    padding: '4px 8px',
-                    fontSize: '11px',
+                    padding: "4px 8px",
+                    fontSize: "11px",
                     backgroundColor:
                       element.style?.horizontalAlign === align
-                        ? '#3498db'
-                        : '#e0e0e0',
+                        ? "#3498db"
+                        : "#e0e0e0",
                     color:
                       element.style?.horizontalAlign === align
-                        ? 'white'
-                        : '#333',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
+                        ? "white"
+                        : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
                     fontWeight:
                       element.style?.horizontalAlign === align
-                        ? 'bold'
-                        : 'normal',
+                        ? "bold"
+                        : "normal",
                   }}
                 >
-                  {align === 'left' ? '←' : align === 'center' ? '↔️' : '→'}
+                  {align === "left" ? "←" : align === "center" ? "↔️" : "→"}
                 </button>
               ))}
             </div>
@@ -717,37 +911,37 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             {/* Alignement du texte */}
             <label
               style={{
-                fontSize: '9px',
-                color: '#aaa',
-                display: 'block',
-                marginBottom: '2px',
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
               }}
             >
               Texte
             </label>
-            <div style={{ display: 'flex', gap: '3px', marginBottom: '8px' }}>
-              {['left', 'center', 'right'].map((align) => (
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["left", "center", "right"].map((align) => (
                 <button
                   key={`text-${align}`}
-                  onClick={() => updateStyle('textAlign', align)}
+                  onClick={() => updateStyle("textAlign", align)}
                   style={{
                     flex: 1,
-                    padding: '4px 8px',
-                    fontSize: '11px',
+                    padding: "4px 8px",
+                    fontSize: "11px",
                     backgroundColor:
                       element.style?.textAlign === align
-                        ? '#27ae60'
-                        : '#e0e0e0',
+                        ? "#27ae60"
+                        : "#e0e0e0",
                     color:
-                      element.style?.textAlign === align ? 'white' : '#333',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
+                      element.style?.textAlign === align ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
                     fontWeight:
-                      element.style?.textAlign === align ? 'bold' : 'normal',
+                      element.style?.textAlign === align ? "bold" : "normal",
                   }}
                 >
-                  {align === 'left' ? '⬅️' : align === 'center' ? '⏹️' : '➡️'}
+                  {align === "left" ? "⬅️" : align === "center" ? "⏹️" : "➡️"}
                 </button>
               ))}
             </div>
@@ -755,43 +949,43 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             {/* Justify content */}
             <label
               style={{
-                fontSize: '9px',
-                color: '#aaa',
-                display: 'block',
-                marginBottom: '2px',
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
               }}
             >
               Distribution
             </label>
-            <div style={{ display: 'flex', gap: '3px' }}>
+            <div style={{ display: "flex", gap: "3px" }}>
               {[
-                { value: 'flex-start', label: 'Start' },
-                { value: 'center', label: 'Center' },
-                { value: 'flex-end', label: 'End' },
-                { value: 'space-between', label: 'Entre' },
+                { value: "flex-start", label: "Start" },
+                { value: "center", label: "Center" },
+                { value: "flex-end", label: "End" },
+                { value: "space-between", label: "Entre" },
               ].map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => updateStyle('justifyContent', option.value)}
+                  onClick={() => updateStyle("justifyContent", option.value)}
                   style={{
                     flex: 1,
-                    padding: '4px 4px',
-                    fontSize: '10px',
+                    padding: "4px 4px",
+                    fontSize: "10px",
                     backgroundColor:
                       element.style?.justifyContent === option.value
-                        ? '#e74c3c'
-                        : '#e0e0e0',
+                        ? "#e74c3c"
+                        : "#e0e0e0",
                     color:
                       element.style?.justifyContent === option.value
-                        ? 'white'
-                        : '#333',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
+                        ? "white"
+                        : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
                     fontWeight:
                       element.style?.justifyContent === option.value
-                        ? 'bold'
-                        : 'normal',
+                        ? "bold"
+                        : "normal",
                   }}
                 >
                   {option.label}
@@ -805,23 +999,23 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 ⚙️ CONFIG TECH
               </label>
 
-              <div style={{ marginBottom: '5px' }}>
+              <div style={{ marginBottom: "5px" }}>
                 <label
                   style={{
-                    fontSize: '9px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
                   ID Unique (JS)
@@ -830,7 +1024,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="text"
                   className="toolbar-input"
                   placeholder="ex: mon-bouton-1"
-                  value={element.attributes.htmlId || ''}
+                  value={element.attributes.htmlId || ""}
                   onChange={(e) =>
                     updateElement(element.id, {
                       attributes: {
@@ -845,10 +1039,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               <div>
                 <label
                   style={{
-                    fontSize: '9px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
                   Classes CSS
@@ -857,7 +1051,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="text"
                   className="toolbar-input"
                   placeholder="ex: btn-lg shadow-md"
-                  value={element.attributes.className || ''}
+                  value={element.attributes.className || ""}
                   onChange={(e) =>
                     updateElement(element.id, {
                       attributes: {
@@ -878,15 +1072,15 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               className="toolbar-center-btn"
               title="Centrer l'élément sur le canvas"
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#f39c12',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                marginRight: '8px',
+                padding: "8px 12px",
+                backgroundColor: "#f39c12",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginRight: "8px",
               }}
             >
               📍 Centrer
@@ -922,158 +1116,158 @@ export const DraggableCanvasElement = ({ element }: Props) => {
         <>
           {/* Coin haut-gauche */}
           <div
-            onMouseDown={startResize('nw')}
+            onMouseDown={startResize("nw")}
             style={{
-              position: 'absolute',
-              top: '-8px',
-              left: '-8px',
-              width: '16px',
-              height: '16px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'nwse-resize',
+              position: "absolute",
+              top: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nwse-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: isResizing ? 1 : 0.7,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-              transition: 'all 0.1s',
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
             }}
             title="Redimensionner"
           />
           {/* Coin haut-droit */}
           <div
-            onMouseDown={startResize('ne')}
+            onMouseDown={startResize("ne")}
             style={{
-              position: 'absolute',
-              top: '-8px',
-              right: '-8px',
-              width: '16px',
-              height: '16px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'nesw-resize',
+              position: "absolute",
+              top: "-8px",
+              right: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: isResizing ? 1 : 0.7,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-              transition: 'all 0.1s',
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
             }}
             title="Redimensionner"
           />
           {/* Coin bas-gauche */}
           <div
-            onMouseDown={startResize('sw')}
+            onMouseDown={startResize("sw")}
             style={{
-              position: 'absolute',
-              bottom: '-8px',
-              left: '-8px',
-              width: '16px',
-              height: '16px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'nesw-resize',
+              position: "absolute",
+              bottom: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: isResizing ? 1 : 0.7,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-              transition: 'all 0.1s',
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
             }}
             title="Redimensionner"
           />
           {/* Coin bas-droit */}
           <div
-            onMouseDown={startResize('se')}
+            onMouseDown={startResize("se")}
             style={{
-              position: 'absolute',
-              bottom: '-8px',
-              right: '-8px',
-              width: '16px',
-              height: '16px',
-              backgroundColor: '#27ae60',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'se-resize',
+              position: "absolute",
+              bottom: "-8px",
+              right: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#27ae60",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "se-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: isResizing ? 1 : 0.7,
-              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-              transition: 'all 0.1s',
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
             }}
             title="Redimensionner (coin bas-droit)"
           />
           {/* Milieu haut */}
           <div
-            onMouseDown={startResize('n')}
+            onMouseDown={startResize("n")}
             style={{
-              position: 'absolute',
-              top: '-6px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'ns-resize',
+              position: "absolute",
+              top: "-6px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ns-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: 0.5,
-              transition: 'all 0.1s',
+              transition: "all 0.1s",
             }}
           />
           {/* Milieu bas */}
           <div
-            onMouseDown={startResize('s')}
+            onMouseDown={startResize("s")}
             style={{
-              position: 'absolute',
-              bottom: '-6px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'ns-resize',
+              position: "absolute",
+              bottom: "-6px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ns-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: 0.5,
-              transition: 'all 0.1s',
+              transition: "all 0.1s",
             }}
           />
           {/* Milieu gauche */}
           <div
-            onMouseDown={startResize('w')}
+            onMouseDown={startResize("w")}
             style={{
-              position: 'absolute',
-              left: '-6px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'ew-resize',
+              position: "absolute",
+              left: "-6px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ew-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: 0.5,
-              transition: 'all 0.1s',
+              transition: "all 0.1s",
             }}
           />
           {/* Milieu droit */}
           <div
-            onMouseDown={startResize('e')}
+            onMouseDown={startResize("e")}
             style={{
-              position: 'absolute',
-              right: '-6px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '12px',
-              height: '12px',
-              backgroundColor: '#3498db',
-              border: '2px solid white',
-              borderRadius: '50%',
-              cursor: 'ew-resize',
+              position: "absolute",
+              right: "-6px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ew-resize",
               zIndex: isResizing ? 1001 : 101,
               opacity: 0.5,
-              transition: 'all 0.1s',
+              transition: "all 0.1s",
             }}
           />
 
@@ -1081,22 +1275,22 @@ export const DraggableCanvasElement = ({ element }: Props) => {
           {isResizing && resizePreview && (
             <div
               style={{
-                position: 'absolute',
-                top: '-30px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: '#2c3e50',
-                color: 'white',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '11px',
-                whiteSpace: 'nowrap',
+                position: "absolute",
+                top: "-30px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#2c3e50",
+                color: "white",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                fontSize: "11px",
+                whiteSpace: "nowrap",
                 zIndex: 1002,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                fontWeight: 'bold',
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                fontWeight: "bold",
               }}
             >
-              {Math.round(resizePreview.width)} ×{' '}
+              {Math.round(resizePreview.width)} ×{" "}
               {Math.round(resizePreview.height)}px
             </div>
           )}

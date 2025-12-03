@@ -1,7 +1,7 @@
-import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
-import type { EditorElement, ElementType } from '../types/editor';
-import { audioDescription } from '../services/audioDescription';
+import { create } from "zustand";
+import { v4 as uuidv4 } from "uuid";
+import type { EditorElement, ElementType, MapMarker } from "../types/editor";
+import { audioDescription } from "../services/audioDescription";
 
 interface EditorState {
   elements: EditorElement[];
@@ -29,33 +29,33 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   elements: [
     {
       id: uuidv4(),
-      type: 'header',
-      content: 'Mon Super Site',
+      type: "header",
+      content: "Mon Super Site",
       x: 0,
       y: 0,
       style: {
-        width: '800px',
-        height: '80px',
-        backgroundColor: '#2c3e50',
-        color: 'white',
-        fontFamily: 'Arial',
+        width: "800px",
+        height: "80px",
+        backgroundColor: "#2c3e50",
+        color: "white",
+        fontFamily: "Arial",
       },
-      attributes: { htmlId: 'main-header', className: 'header-fixed' },
+      attributes: { htmlId: "main-header", className: "header-fixed" },
     },
     {
       id: uuidv4(),
-      type: 'footer',
-      content: '© 2025 - Tous droits réservés',
+      type: "footer",
+      content: "© 2025 - Tous droits réservés",
       x: 0,
       y: 940,
       style: {
-        width: '800px',
-        height: '60px',
-        backgroundColor: '#95a5a6',
-        color: 'white',
-        fontFamily: 'Arial',
+        width: "800px",
+        height: "60px",
+        backgroundColor: "#95a5a6",
+        color: "white",
+        fontFamily: "Arial",
       },
-      attributes: { htmlId: 'main-footer', className: '' },
+      attributes: { htmlId: "main-footer", className: "" },
     },
   ],
   selectedId: null,
@@ -67,8 +67,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const element = state.elements.find((el) => el.id === id);
 
     if (element) {
-      const elementWidth = parseFloat(element.style?.width || '100');
-      const elementHeight = parseFloat(element.style?.height || '100');
+      const elementWidth = parseFloat(element.style?.width || "100");
+      const elementHeight = parseFloat(element.style?.height || "100");
 
       const centerX = (state.canvasDimensions.width - elementWidth) / 2;
       const centerY = (state.canvasDimensions.height - elementHeight) / 2;
@@ -91,116 +91,119 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   addElement: (type, x, y) => {
     const newId = uuidv4();
-    let defaultContent = 'Texte';
-    let defaultStyle: EditorElement['style'] = {
-      fontFamily: 'Arial',
-      color: '#000000',
+    let defaultContent = "Texte";
+    let defaultStyle: EditorElement["style"] = {
+      fontFamily: "Arial",
+      color: "#000000",
     };
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
+    let defaultCoordinates: { lat: number; lng: number } | undefined =
+      undefined;
+    let defaultMarkers: MapMarker[] | undefined = undefined;
 
     switch (type) {
-      case 'video':
-        defaultContent = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        defaultStyle = { ...defaultStyle, width: '480px', height: '270px' };
+      case "video":
+        defaultContent = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+        defaultStyle = { ...defaultStyle, width: "480px", height: "270px" };
         break;
-      case 'image':
-        defaultContent = 'https://via.placeholder.com/300x200';
-        defaultStyle = { ...defaultStyle, width: '300px', height: 'auto' };
+      case "image":
+        defaultContent = "https://via.placeholder.com/300x200";
+        defaultStyle = { ...defaultStyle, width: "300px", height: "auto" };
         break;
-      case 'card':
-        defaultContent = 'Titre Carte';
-        defaultDescription = 'Description...';
+      case "card":
+        defaultContent = "Titre Carte";
+        defaultDescription = "Description...";
         defaultStyle = {
           ...defaultStyle,
-          width: '300px',
-          backgroundColor: '#ffffff',
-          padding: '15px',
+          width: "300px",
+          backgroundColor: "#ffffff",
+          padding: "15px",
         };
         break;
-      case 'button':
-        defaultContent = 'Bouton';
+      case "button":
+        defaultContent = "Bouton";
         defaultStyle = {
           ...defaultStyle,
-          backgroundColor: '#3498db',
-          color: '#ffffff',
-          borderRadius: '4px',
-          padding: '10px 20px',
+          backgroundColor: "#3498db",
+          color: "#ffffff",
+          borderRadius: "4px",
+          padding: "10px 20px",
         };
         break;
-      case 'header':
-        defaultContent = 'Header';
+      case "header":
+        defaultContent = "Header";
         defaultStyle = {
           ...defaultStyle,
-          width: '800px',
-          height: '80px',
-          backgroundColor: '#2c3e50',
-          color: '#ffffff',
+          width: "800px",
+          height: "80px",
+          backgroundColor: "#2c3e50",
+          color: "#ffffff",
         };
         break;
-      case 'footer':
-        defaultContent = 'Footer';
+      case "footer":
+        defaultContent = "Footer";
         defaultStyle = {
           ...defaultStyle,
-          width: '800px',
-          height: '60px',
-          backgroundColor: '#95a5a6',
-          color: '#ffffff',
+          width: "800px",
+          height: "60px",
+          backgroundColor: "#95a5a6",
+          color: "#ffffff",
         };
         break;
-      case 'title':
-        defaultContent = 'Mon Titre';
-        defaultStyle = { ...defaultStyle, color: '#2c3e50' };
+      case "title":
+        defaultContent = "Mon Titre";
+        defaultStyle = { ...defaultStyle, color: "#2c3e50" };
         break;
-      case 'select':
-        defaultContent = 'Option 1';
-        defaultOptions = ['Option 1', 'Option 2', 'Option 3'];
+      case "select":
+        defaultContent = "Option 1";
+        defaultOptions = ["Option 1", "Option 2", "Option 3"];
         break;
-      case 'input-number':
-        defaultContent = '0';
+      case "input-number":
+        defaultContent = "0";
         break;
-      case 'input-email':
-        defaultContent = '';
+      case "input-email":
+        defaultContent = "";
         break;
-      case 'input-text':
-        defaultContent = '';
+      case "input-text":
+        defaultContent = "";
         break;
-      case 'input-form': {
-        defaultContent = 'Mon Formulaire';
+      case "input-form": {
+        defaultContent = "Mon Formulaire";
         defaultStyle = {
           ...defaultStyle,
-          width: '400px',
-          backgroundColor: '#f8f9fa',
-          padding: '20px',
+          width: "400px",
+          backgroundColor: "#f8f9fa",
+          padding: "20px",
         };
         // Créer des inputs par défaut pour le formulaire
         const formChildren: EditorElement[] = [
           {
             id: uuidv4(),
-            type: 'input-email',
-            content: '',
+            type: "input-email",
+            content: "",
             x: 0,
             y: 0,
-            style: { fontFamily: 'Arial' },
-            attributes: { htmlId: '', className: '' },
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
           },
           {
             id: uuidv4(),
-            type: 'input-number',
-            content: '0',
+            type: "input-number",
+            content: "0",
             x: 0,
             y: 0,
-            style: { fontFamily: 'Arial' },
-            attributes: { htmlId: '', className: '' },
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
           },
           {
             id: uuidv4(),
-            type: 'calendar',
-            content: new Date().toISOString().split('T')[0],
+            type: "calendar",
+            content: new Date().toISOString().split("T")[0],
             x: 0,
             y: 0,
-            style: { fontFamily: 'Arial' },
-            attributes: { htmlId: '', className: '' },
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
           },
         ];
 
@@ -217,15 +220,33 @@ export const useEditorStore = create<EditorState>((set, get) => ({
               x,
               y,
               style: defaultStyle,
-              attributes: { htmlId: '', className: '' },
+              attributes: { htmlId: "", className: "" },
             },
           ],
           selectedId: newId,
         }));
         return;
       }
-      case 'calendar':
-        defaultContent = new Date().toISOString().split('T')[0];
+      case "calendar":
+        defaultContent = new Date().toISOString().split("T")[0];
+        break;
+      case "map":
+        defaultContent = "Ma carte";
+        defaultStyle = {
+          ...defaultStyle,
+          width: "400px",
+          height: "300px",
+        };
+        defaultCoordinates = { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
+        defaultMarkers = [
+          {
+            id: uuidv4(),
+            lat: 48.8566,
+            lng: 2.3522,
+            label: "Paris",
+            color: "#FF5252",
+          },
+        ];
         break;
     }
 
@@ -238,10 +259,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           content: defaultContent,
           description: defaultDescription,
           options: defaultOptions,
+          coordinates: defaultCoordinates,
+          markers: defaultMarkers,
           x,
           y,
           style: defaultStyle,
-          attributes: { htmlId: '', className: '' },
+          attributes: { htmlId: "", className: "" },
         },
       ],
       selectedId: newId,
@@ -306,10 +329,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }));
 
     if (child && updates.content !== undefined) {
-      audioDescription.announceFormChildUpdated(child.type, 'contenu');
+      audioDescription.announceFormChildUpdated(child.type, "contenu");
     }
     if (child && updates.description !== undefined) {
-      audioDescription.announceFormChildUpdated(child.type, 'label');
+      audioDescription.announceFormChildUpdated(child.type, "label");
     }
   },
 
@@ -350,37 +373,37 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (updates.style) {
         // Check specific style properties
         if (updates.style.color !== undefined) {
-          audioDescription.announceStyleChanged('couleur', updates.style.color);
+          audioDescription.announceStyleChanged("couleur", updates.style.color);
         }
         if (updates.style.backgroundColor !== undefined) {
           audioDescription.announceStyleChanged(
-            'fond',
+            "fond",
             updates.style.backgroundColor
           );
         }
         if (updates.style.fontFamily !== undefined) {
           audioDescription.announceStyleChanged(
-            'police',
+            "police",
             updates.style.fontFamily
           );
         }
         if (updates.style.fontSize !== undefined) {
           audioDescription.announceStyleChanged(
-            'taille',
+            "taille",
             `${updates.style.fontSize}px`
           );
         }
       }
       if (updates.content !== undefined) {
         const contentStr =
-          typeof updates.content === 'string'
+          typeof updates.content === "string"
             ? updates.content
             : String(updates.content);
         audioDescription.announceContentChanged(element.type, contentStr);
       }
       if (updates.description !== undefined) {
         audioDescription.announceAttributeChanged(
-          'description',
+          "description",
           String(updates.description)
         );
       }
