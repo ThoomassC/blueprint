@@ -238,23 +238,142 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     }}
                 >
           <span
-              style={{
-                  position: "absolute",
-                  left: "12px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: "16px",
-                  color: "#666",
-                  pointerEvents: "none",
-              }}
+            style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: "16px",
+              color: element.style?.color || "#666",
+              pointerEvents: "none",
+            }}
           >
             📧
           </span>
-                    <input
-                        type="email"
-                        value={element.content}
-                        placeholder="exemple@email.com"
-                        required
+          <input
+            type="email"
+            value={element.content}
+            placeholder="exemple@email.com"
+            required
+            style={{
+              ...interactionStyle,
+              padding: "10px 12px 10px 40px",
+              width: "100%",
+              border: `2px solid ${hasError ? "#f44336" : "#e0e0e0"}`,
+              borderRadius: "8px",
+              fontSize: "14px",
+              fontFamily: styles.fontFamily,
+              backgroundColor: "#ffffff",
+              color: element.style?.color || "#000000",
+              transition: "border-color 0.2s",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            onFocus={(e) => {
+              if (!hasError) {
+                e.target.style.borderColor = "#4CAF50";
+              }
+            }}
+            onBlur={(e) => {
+              const value = e.target.value;
+              if (value && !emailRegex.test(value)) {
+                setEmailError(
+                  "Veuillez entrer une adresse email valide avec @"
+                );
+                e.target.style.borderColor = "#f44336";
+              } else {
+                setEmailError("");
+                e.target.style.borderColor = "#e0e0e0";
+              }
+            }}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateElement(element.id, { content: value });
+              if (value && !emailRegex.test(value)) {
+                setEmailError(
+                  "Veuillez entrer une adresse email valide avec @"
+                );
+              } else {
+                setEmailError("");
+              }
+            }}
+          />
+          {hasError && (
+            <div
+              style={{
+                color: "#f44336",
+                fontSize: "12px",
+                marginTop: "4px",
+                paddingLeft: "4px",
+              }}
+            >
+              {emailError || "Veuillez entrer une adresse email valide avec @"}
+            </div>
+          )}
+        </div>
+      );
+    }
+    case "calendar":
+      return (
+        <input
+          type="date"
+          value={element.content}
+          style={{ ...interactionStyle, padding: "5px" }}
+          onChange={(e) =>
+            updateElement(element.id, { content: e.target.value })
+          }
+        />
+      );
+
+    case "input-form":
+      return (
+        <form
+          style={{
+            ...styles,
+            border: "2px solid #3498db",
+            borderRadius: "12px",
+            padding: "20px",
+            minWidth: "300px",
+            maxWidth: "500px",
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (isPreviewMode) {
+              alert("Formulaire soumis !");
+            }
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "15px",
+              color: element.style?.color || "#2c3e50",
+              fontFamily: styles.fontFamily,
+            }}
+          >
+            {element.content}
+          </h3>
+
+          {/* Inputs du formulaire */}
+          {element.children && element.children.length > 0 ? (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {element.children.map((child) => (
+                <div key={child.id} style={{ position: "relative" }}>
+                  {!isPreviewMode && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={child.description || ""}
+                        placeholder="Label du champ..."
                         style={{
                             ...interactionStyle,
                             padding: "10px 12px 10px 40px",
@@ -286,16 +405,42 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                                 e.target.style.borderColor = "#e0e0e0";
                             }
                         }}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            updateElement(element.id, { content: value });
-                            if (value && !emailRegex.test(value)) {
-                                setEmailError(
-                                    "Veuillez entrer une adresse email valide avec @"
-                                );
-                            } else {
-                                setEmailError("");
-                            }
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                  {child.description && isPreviewMode && (
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        marginBottom: "4px",
+                        color: "#555",
+                      }}
+                    >
+                      {child.description}
+                    </label>
+                  )}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {child.type === "input-text" && (
+                      <input
+                        type="text"
+                        value={child.content}
+                        placeholder={child.description || "Entrez du texte..."}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
+                          outline: "none",
+                          boxSizing: "border-box",
                         }}
                     />
                     {hasError && (
@@ -310,51 +455,44 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                             {emailError || "Veuillez entrer une adresse email valide avec @"}
                         </div>
                     )}
-                </div>
-            );
-        }
-
-        case "calendar":
-            return (
-                <input
-                    type="date"
-                    value={element.content}
-                    style={{
-                        ...styles,
-                        ...interactionStyle,
-                        padding: "5px"
-                    }}
-                    onChange={(e) =>
-                        updateElement(element.id, { content: e.target.value })
-                    }
-                />
-            );
-
-        case "input-form":
-            return (
-                <form
-                    style={{
-                        ...styles,
-                        border: "2px solid #3498db",
-                        borderRadius: "12px",
-                        padding: "20px",
-                        backgroundColor: element.style?.backgroundColor || "#f8f9fa",
-                        minWidth: "300px",
-                        maxWidth: "500px",
-                    }}
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        if (isPreviewMode) {
-                            alert("Formulaire soumis !");
+                    {child.type === "input-email" && (
+                      <input
+                        type="email"
+                        value={child.content}
+                        placeholder={child.description || "exemple@email.com"}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            content: e.target.value,
+                          })
                         }
                     }}
                 >
                     <h3
                         style={{
-                            marginTop: 0,
-                            marginBottom: "15px",
-                            color: element.style?.color || "#2c3e50",
-                            fontFamily: element.style?.fontFamily || "Arial",
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
+                          outline: "none",
+                          boxSizing: "border-box",
                         }}
                     >
                         {element.content}
@@ -654,18 +792,17 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     <button
                         type="submit"
                         style={{
-                            ...interactionStyle,
-                            marginTop: "15px",
-                            padding: "10px 20px",
-                            backgroundColor: "#3498db",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            cursor: isPreviewMode ? "pointer" : "default",
-                            width: "100%",
-                            transition: "background-color 0.2s",
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          backgroundColor: "#ffffff",
+                          color: element.style?.color || "#000000",
+                          outline: "none",
+                          boxSizing: "border-box",
                         }}
                         onMouseEnter={(e) => {
                             if (isPreviewMode) {
