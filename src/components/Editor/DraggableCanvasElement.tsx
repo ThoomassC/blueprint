@@ -147,15 +147,15 @@ const TOOLBAR_CONFIG: Record<
     customFields: ["options"],
   },
   carousel: {
-    showContent: false,
-    showStyle: true,
-    showColors: true,
-    showFont: false,
-    showTechConfig: true,
-    showRadius: true,
-    showShadow: true,
-    showAlignment: false,
-    customFields: ["slides"],
+      showContent: false, // On cache l'input par défaut
+      showStyle: false,   // Pas de style
+      showColors: false,  // Pas de couleur
+      showFont: false,    // Pas de police
+      showTechConfig: true, // On garde l'ID/Class CSS au cas où
+      showRadius: false,  // Pas de bordure
+      showShadow: false,  // Pas d'ombre
+      showAlignment: false, // Pas d'alignement
+      customFields: ["carousel-mixed"], // Nouveau champ personnalisé
   },
   map: {
     showContent: false,
@@ -388,6 +388,127 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
+    if (config.customFields?.includes("carousel-mixed")) {
+      const items = element.carouselItems || [];
+
+      return (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <label style={{ fontSize: "9px", color: "#aaa", textTransform: "uppercase" }}>
+              Éléments du carrousel ({items.length})
+            </label>
+
+            {/* Liste des éléments existants */}
+            {items.map((item: any, index: number) => (
+                <div
+                    key={index}
+                    style={{
+                      backgroundColor: "#f8f9fa",
+                      border: "1px solid #e9ecef",
+                      borderRadius: "4px",
+                      padding: "8px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "5px"
+                    }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "10px", fontWeight: "bold", color: "#666" }}>
+                  {item.type === "card" ? "💳 Carte" : item.type === "video" ? "🎥 Vidéo" : "🖼️ Image"} #{index + 1}
+                </span>
+                    <button
+                        className="btn-mini-delete"
+                        onClick={() => {
+                          const newItems = items.filter((_: any, i: number) => i !== index);
+                          updateElement(element.id, { carouselItems: newItems });
+                        }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+
+                  {/* Champs spécifiques selon le type */}
+                  {item.type === "card" && (
+                      <>
+                        <input
+                            className="toolbar-input"
+                            placeholder="Titre de la carte"
+                            value={item.title || ""}
+                            onChange={(e) => {
+                              const newItems = [...items];
+                              newItems[index] = { ...item, title: e.target.value };
+                              updateElement(element.id, { carouselItems: newItems });
+                            }}
+                        />
+                        <textarea
+                            className="toolbar-textarea"
+                            placeholder="Description"
+                            value={item.description || ""}
+                            onChange={(e) => {
+                              const newItems = [...items];
+                              newItems[index] = { ...item, description: e.target.value };
+                              updateElement(element.id, { carouselItems: newItems });
+                            }}
+                        />
+                      </>
+                  )}
+
+                  {(item.type === "video" || item.type === "image") && (
+                      <input
+                          className="toolbar-input"
+                          placeholder={item.type === "video" ? "URL Vidéo (mp4, youtube...)" : "URL Image (http...)"}
+                          value={item.url || ""}
+                          onChange={(e) => {
+                            const newItems = [...items];
+                            newItems[index] = { ...item, url: e.target.value };
+                            updateElement(element.id, { carouselItems: newItems });
+                          }}
+                      />
+                  )}
+                </div>
+            ))}
+
+            {/* Boutons d'ajout */}
+            <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
+              <button
+                  className="btn-add-option"
+                  style={{ flex: 1, fontSize: "9px" }}
+                  onClick={() => {
+                    updateElement(element.id, {
+                      carouselItems: [...items, { type: "image", url: "" }]
+                    });
+                  }}
+              >
+                + Img
+              </button>
+              <button
+                  className="btn-add-option"
+                  style={{ flex: 1, fontSize: "9px" }}
+                  onClick={() => {
+                    updateElement(element.id, {
+                      carouselItems: [...items, { type: "video", url: "" }]
+                    });
+                  }}
+              >
+                + Vid
+              </button>
+              <button
+                  className="btn-add-option"
+                  style={{ flex: 1, fontSize: "9px" }}
+                  onClick={() => {
+                    updateElement(element.id, {
+                      carouselItems: [...items, { type: "card", title: "Nouvelle carte", description: "" }]
+                    });
+                  }}
+              >
+                + Carte
+              </button>
+            </div>
+          </div>
+      );
+    }
+
+    return null;
+
     if (config.customFields?.includes("location")) {
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
@@ -572,8 +693,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
         </div>
       );
     }
-
-    return null;
   };
 
   const renderToolbar = () => {
