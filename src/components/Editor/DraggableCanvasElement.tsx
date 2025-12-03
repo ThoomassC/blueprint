@@ -847,7 +847,8 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             </div>
           )}
 
-          {config.showAlignment && (
+          {/* Section Alignement */}
+          {currentConfig.showAlignment && (
             <div className="toolbar-section">
               <label
                 style={{
@@ -861,88 +862,37 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                 📐 ALIGNEMENT
               </label>
 
-              <label
+              <button
+                onClick={() => {
+                  const isCentered =
+                    currentElement.style?.textAlign === "center";
+                  updateStyle("textAlign", isCentered ? "left" : "center");
+                }}
                 style={{
-                  fontSize: "9px",
-                  color: "#aaa",
-                  display: "block",
-                  marginBottom: "5px",
+                  width: "100%",
+                  padding: "8px",
+                  fontSize: "12px",
+                  backgroundColor:
+                    currentElement.style?.textAlign === "center"
+                      ? "#27ae60"
+                      : "#e0e0e0",
+                  color:
+                    currentElement.style?.textAlign === "center"
+                      ? "white"
+                      : "#333",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontWeight:
+                    currentElement.style?.textAlign === "center"
+                      ? "bold"
+                      : "normal",
                 }}
               >
-                Contenu
-              </label>
-              <div style={{ display: "flex", gap: "5px" }}>
-                <button
-                  onClick={() => updateStyle("textAlign", "left")}
-                  style={{
-                    flex: 1,
-                    padding: "6px",
-                    fontSize: "11px",
-                    backgroundColor:
-                      element.style?.textAlign === "left"
-                        ? "#27ae60"
-                        : "#e0e0e0",
-                    color:
-                      element.style?.textAlign === "left" ? "white" : "#333",
-                    border: "none",
-                    borderRadius: "3px",
-                    cursor: "pointer",
-                    fontWeight:
-                      element.style?.textAlign === "left" ? "bold" : "normal",
-                  }}
-                >
-                  Gauche
-                </button>
-                <button
-                  onClick={() => {
-                    updateStyle("textAlign", "center");
-                    if (element.type === "input-form") {
-                      updateStyle("display", "flex");
-                      updateStyle("flexDirection", "column");
-                      updateStyle("alignItems", "center");
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: "6px",
-                    fontSize: "11px",
-                    backgroundColor:
-                      element.style?.textAlign === "center"
-                        ? "#27ae60"
-                        : "#e0e0e0",
-                    color:
-                      element.style?.textAlign === "center" ? "white" : "#333",
-                    border: "none",
-                    borderRadius: "3px",
-                    cursor: "pointer",
-                    fontWeight:
-                      element.style?.textAlign === "center" ? "bold" : "normal",
-                  }}
-                >
-                  Centre
-                </button>
-                <button
-                  onClick={() => updateStyle("textAlign", "right")}
-                  style={{
-                    flex: 1,
-                    padding: "6px",
-                    fontSize: "11px",
-                    backgroundColor:
-                      element.style?.textAlign === "right"
-                        ? "#27ae60"
-                        : "#e0e0e0",
-                    color:
-                      element.style?.textAlign === "right" ? "white" : "#333",
-                    border: "none",
-                    borderRadius: "3px",
-                    cursor: "pointer",
-                    fontWeight:
-                      element.style?.textAlign === "right" ? "bold" : "normal",
-                  }}
-                >
-                  Droite
-                </button>
-              </div>
+                {currentElement.style?.textAlign === "center"
+                  ? "✓ Texte centré"
+                  : "Centrer le texte"}
+              </button>
             </div>
           )}
 
