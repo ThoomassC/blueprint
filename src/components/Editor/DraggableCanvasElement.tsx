@@ -377,6 +377,192 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
+    if (config.customFields?.includes("location")) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            NOM DE LA CARTE
+          </label>
+          <input
+            className="toolbar-input"
+            placeholder="Nom du lieu"
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
+            }
+          />
+
+          <div
+            style={{
+              marginTop: "10px",
+              borderTop: "1px solid #ddd",
+              paddingTop: "10px",
+            }}
+          >
+            <label style={{ fontSize: "9px", color: "#aaa" }}>
+              POINTS SUR LA CARTE
+            </label>
+            {(element.markers || []).map((marker, i) => (
+              <div
+                key={marker.id}
+                style={{
+                  marginTop: "5px",
+                  padding: "8px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "4px",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "5px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "8px",
+                      color: "#666",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    POINT {i + 1}
+                  </label>
+                  <button
+                    className="btn-mini-delete"
+                    onClick={() =>
+                      updateElement(element.id, {
+                        markers: element.markers?.filter(
+                          (m) => m.id !== marker.id
+                        ),
+                      })
+                    }
+                  >
+                    🗑️
+                  </button>
+                </div>
+                <input
+                  className="toolbar-input"
+                  placeholder="Nom du point"
+                  value={marker.label}
+                  style={{ marginBottom: "3px", fontSize: "11px" }}
+                  onChange={(e) => {
+                    const newMarkers = [...(element.markers || [])];
+                    newMarkers[i] = { ...marker, label: e.target.value };
+                    updateElement(element.id, { markers: newMarkers });
+                  }}
+                />
+                <div
+                  style={{ display: "flex", gap: "3px", marginBottom: "3px" }}
+                >
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lat"
+                    value={marker.lat}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lat: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lng"
+                    value={marker.lng}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lng: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                </div>
+                <div
+                  style={{ display: "flex", gap: "3px", alignItems: "center" }}
+                >
+                  <label style={{ fontSize: "8px", color: "#666" }}>
+                    Couleur:
+                  </label>
+                  <input
+                    type="color"
+                    value={marker.color || "#FF5252"}
+                    style={{
+                      width: "40px",
+                      height: "25px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                    }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        color: e.target.value,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      fontSize: "9px",
+                      color: "#999",
+                      textAlign: "right",
+                    }}
+                  >
+                    {marker.color || "#FF5252"}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              className="btn-add-option"
+              style={{ marginTop: "5px", width: "100%" }}
+              onClick={() => {
+                // Couleurs prédéfinies pour varier automatiquement
+                const colors = [
+                  "#FF5252",
+                  "#4CAF50",
+                  "#2196F3",
+                  "#FFC107",
+                  "#9C27B0",
+                  "#FF9800",
+                ];
+                const colorIndex =
+                  (element.markers?.length || 0) % colors.length;
+
+                const newMarker = {
+                  id: `marker-${Date.now()}`,
+                  lat: element.coordinates?.lat || 48.8566,
+                  lng: element.coordinates?.lng || 2.3522,
+                  label: `Point ${(element.markers?.length || 0) + 1}`,
+                  color: colors[colorIndex],
+                };
+                updateElement(element.id, {
+                  markers: [...(element.markers || []), newMarker],
+                });
+              }}
+            >
+              + Ajouter un point
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   };
 
