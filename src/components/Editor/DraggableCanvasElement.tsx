@@ -8,7 +8,6 @@ interface Props {
   element: EditorElement;
 }
 
-// Configuration des fonctionnalités par type de composant
 const TOOLBAR_CONFIG: Record<
   string,
   {
@@ -17,6 +16,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: boolean;
     showFont: boolean;
     showTechConfig: boolean;
+    showRadius: boolean;
+    showShadow: boolean;
+    showAlignment: boolean;
     customFields?: string[];
   }
 > = {
@@ -26,6 +28,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: true,
   },
   heading: {
     showContent: true,
@@ -33,6 +38,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: false,
+    showShadow: false,
+    showAlignment: true,
   },
   button: {
     showContent: true,
@@ -40,6 +48,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: true,
   },
   input: {
     showContent: true,
@@ -47,6 +58,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: true,
   },
   "input-text": {
     showContent: true,
@@ -54,6 +68,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: false,
+    showAlignment: true,
   },
   "input-email": {
     showContent: true,
@@ -61,6 +78,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: false,
+    showAlignment: true,
   },
   "input-number": {
     showContent: true,
@@ -68,6 +88,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: false,
+    showAlignment: true,
   },
   textarea: {
     showContent: true,
@@ -75,6 +98,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: false,
+    showAlignment: true,
   },
   image: {
     showContent: false,
@@ -82,6 +108,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: false,
     customFields: ["url"],
   },
   video: {
@@ -90,6 +119,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: false,
     customFields: ["url"],
   },
   card: {
@@ -98,6 +130,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: true,
     customFields: ["card"],
   },
   select: {
@@ -106,6 +141,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: false,
+    showAlignment: false,
     customFields: ["options"],
   },
   carousel: {
@@ -114,6 +152,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: false,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: false,
     customFields: ["slides"],
   },
   map: {
@@ -122,6 +163,9 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
+    showRadius: true,
+    showShadow: true,
+    showAlignment: false,
     customFields: ["location"],
   },
 };
@@ -133,6 +177,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const updateElement = useEditorStore((state) => state.updateElement);
   const updateFormChild = useEditorStore((state) => state.updateFormChild);
   const removeElement = useEditorStore((state) => state.removeElement);
+
+  const centerElementOnCanvas = useEditorStore(
+    (state) => state.centerElementOnCanvas
+  );
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const isSelected = !isPreviewMode && selectedId === element.id;
 
@@ -716,51 +764,190 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             </div>
           )}
 
-          {/* Section Alignement */}
-          <div className="toolbar-section">
-            <label
-              style={{
-                fontSize: "10px",
-                fontWeight: "bold",
-                color: "#888",
-                marginBottom: "5px",
-                display: "block",
-              }}
-            >
-              📐 ALIGNEMENT
-            </label>
+          {(config.showRadius || config.showShadow) && (
+            <div className="toolbar-section">
+              <label
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
+                }}
+              >
+                ✨ APPARENCE
+              </label>
 
-            <button
-              onClick={() => {
-                const isCentered = currentElement.style?.textAlign === "center";
-                updateStyle("textAlign", isCentered ? "left" : "center");
-              }}
-              style={{
-                width: "100%",
-                padding: "8px",
-                fontSize: "12px",
-                backgroundColor:
-                  currentElement.style?.textAlign === "center"
-                    ? "#27ae60"
-                    : "#e0e0e0",
-                color:
-                  currentElement.style?.textAlign === "center"
-                    ? "white"
-                    : "#333",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight:
-                  currentElement.style?.textAlign === "center"
-                    ? "bold"
-                    : "normal",
-              }}
-            >
-              {currentElement.style?.textAlign === "center"
-                ? "✓ Texte centré"
-                : "Centrer le texte"}
-            </button>
-          </div>
+              {config.showRadius && (
+                <div style={{ marginBottom: "10px" }}>
+                  <label
+                    style={{
+                      fontSize: "9px",
+                      color: "#aaa",
+                      display: "block",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    Arrondi
+                  </label>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={parseInt(element.style?.borderRadius || "0")}
+                      onChange={(e) =>
+                        updateStyle("borderRadius", `${e.target.value}px`)
+                      }
+                      style={{ flex: 1 }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "#666",
+                        minWidth: "35px",
+                      }}
+                    >
+                      {element.style?.borderRadius || "0px"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {config.showShadow && (
+                <div style={{ marginBottom: "5px" }}>
+                  <label
+                    style={{
+                      fontSize: "9px",
+                      color: "#aaa",
+                      display: "block",
+                      marginBottom: "3px",
+                    }}
+                  >
+                    Ombre
+                  </label>
+                  <select
+                    className="toolbar-input"
+                    value={element.style?.boxShadow || "none"}
+                    onChange={(e) => updateStyle("boxShadow", e.target.value)}
+                  >
+                    <option value="none">Aucune</option>
+                    <option value="0 2px 4px rgba(0,0,0,0.1)">Légère</option>
+                    <option value="0 4px 8px rgba(0,0,0,0.2)">Moyenne</option>
+                    <option value="0 8px 16px rgba(0,0,0,0.3)">Forte</option>
+                    <option value="0 12px 24px rgba(0,0,0,0.4)">
+                      Très forte
+                    </option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+
+          {config.showAlignment && (
+            <div className="toolbar-section">
+              <label
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
+                }}
+              >
+                📐 ALIGNEMENT
+              </label>
+
+              <label
+                style={{
+                  fontSize: "9px",
+                  color: "#aaa",
+                  display: "block",
+                  marginBottom: "5px",
+                }}
+              >
+                Contenu
+              </label>
+              <div style={{ display: "flex", gap: "5px" }}>
+                <button
+                  onClick={() => updateStyle("textAlign", "left")}
+                  style={{
+                    flex: 1,
+                    padding: "6px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.textAlign === "left"
+                        ? "#27ae60"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.textAlign === "left" ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.textAlign === "left" ? "bold" : "normal",
+                  }}
+                >
+                  Gauche
+                </button>
+                <button
+                  onClick={() => {
+                    updateStyle("textAlign", "center");
+                    if (element.type === "input-form") {
+                      updateStyle("display", "flex");
+                      updateStyle("flexDirection", "column");
+                      updateStyle("alignItems", "center");
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "6px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.textAlign === "center"
+                        ? "#27ae60"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.textAlign === "center" ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.textAlign === "center" ? "bold" : "normal",
+                  }}
+                >
+                  Centre
+                </button>
+                <button
+                  onClick={() => updateStyle("textAlign", "right")}
+                  style={{
+                    flex: 1,
+                    padding: "6px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.textAlign === "right"
+                        ? "#27ae60"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.textAlign === "right" ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.textAlign === "right" ? "bold" : "normal",
+                  }}
+                >
+                  Droite
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Section Config Technique */}
           {currentConfig.showTechConfig && !selectedChild && (
@@ -833,7 +1020,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
             </div>
           )}
 
-          {/* Actions */}
           <div className="toolbar-actions">
             <button
               onClick={() => removeElement(element.id)}

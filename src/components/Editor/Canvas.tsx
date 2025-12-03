@@ -7,9 +7,6 @@ export const Canvas = () => {
   const elements = useEditorStore((state) => state.elements);
   const selectElement = useEditorStore((state) => state.selectElement);
   const selectedId = useEditorStore((state) => state.selectedId);
-
-  // --- CHANGEMENT ICI : On connecte la couleur au Store ---
-  // Au lieu de useState, on récupère la valeur et la fonction depuis le store
   const backgroundColor = useEditorStore(
     (state) => state.canvasBackgroundColor
   );
@@ -17,8 +14,6 @@ export const Canvas = () => {
     (state) => state.setCanvasBackgroundColor
   );
 
-  // --- Gestion de la palette (Position + Visibilité) ---
-  // Ces états restent ici car c'est juste de l'interface (UI), pas des données à sauvegarder
   const [showPalette, setShowPalette] = useState(false);
   const [palettePosition, setPalettePosition] = useState({ x: 820, y: 50 });
   const [isDraggingPalette, setIsDraggingPalette] = useState(false);
@@ -28,20 +23,11 @@ export const Canvas = () => {
     id: 'canvas-drop-zone',
   });
 
-  // Gestion du clic sur le fond
   const handleBackgroundClick = () => {
     selectElement(null);
     setShowPalette(true);
   };
 
-  // Fermer la palette si on sélectionne un autre élément
-  useEffect(() => {
-    if (selectedId) {
-      setShowPalette(false);
-    }
-  }, [selectedId]);
-
-  // --- LOGIQUE DE DÉPLACEMENT DE LA PALETTE ---
   const handleMouseDownPalette = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsDraggingPalette(true);
@@ -75,8 +61,6 @@ export const Canvas = () => {
 
   const canvasWidth = 800;
   const canvasHeight = 1000;
-  const centerXPosition = canvasWidth / 2;
-  const centerYPosition = canvasHeight / 2;
 
   return (
     <div
@@ -89,7 +73,6 @@ export const Canvas = () => {
         overflow: 'hidden',
       }}
     >
-      {/* --- LE CANVAS (FEUILLE) --- */}
       <div
         ref={setNodeRef}
         className={`page-sheet ${isOver ? 'highlight' : ''}`}
@@ -99,46 +82,13 @@ export const Canvas = () => {
         }}
         style={{
           position: 'relative',
-          backgroundColor: backgroundColor, // Utilise maintenant la couleur du store
+          backgroundColor: backgroundColor,
           width: canvasWidth,
           height: canvasHeight,
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
           margin: '20px',
         }}
       >
-        {selectedId && (
-          <>
-            <div
-              style={{
-                position: 'absolute',
-                left: centerXPosition - 1,
-                top: 0,
-                width: '2px',
-                height: '100%',
-                backgroundColor: '#3498db',
-                opacity: 0.3,
-                pointerEvents: 'none',
-                zIndex: 50,
-                borderLeft: '1px dashed #3498db',
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                top: centerYPosition - 1,
-                width: '100%',
-                height: '2px',
-                backgroundColor: '#3498db',
-                opacity: 0.3,
-                pointerEvents: 'none',
-                zIndex: 50,
-                borderTop: '1px dashed #3498db',
-              }}
-            />
-          </>
-        )}
-
         {elements.length === 0 && (
           <div className="empty-state">Glissez un élément n'importe où ici</div>
         )}
@@ -148,8 +98,7 @@ export const Canvas = () => {
         ))}
       </div>
 
-      {/* --- PALETTE DE COULEUR FLOTTANTE --- */}
-      {showPalette && (
+      {showPalette && !selectedId && (
         <div
           onMouseDown={handleMouseDownPalette}
           onClick={(e) => e.stopPropagation()}
@@ -231,8 +180,8 @@ export const Canvas = () => {
               >
                 <input
                   type="color"
-                  value={backgroundColor} // Lié au store
-                  onChange={(e) => setBackgroundColor(e.target.value)} // Met à jour le store
+                  value={backgroundColor}
+                  onChange={(e) => setBackgroundColor(e.target.value)}
                   style={{
                     position: 'absolute',
                     top: '-50%',

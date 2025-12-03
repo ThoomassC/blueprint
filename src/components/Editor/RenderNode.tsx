@@ -39,6 +39,20 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
       (element.style?.justifyContent ? "flex" : undefined),
     flexDirection: element.style
       ?.flexDirection as React.CSSProperties["flexDirection"],
+    alignItems:
+      element.style?.verticalAlign === "top"
+        ? "flex-start"
+        : element.style?.verticalAlign === "middle"
+        ? "center"
+        : element.style?.verticalAlign === "bottom"
+        ? "flex-end"
+        : (element.style?.alignItems as React.CSSProperties["alignItems"]),
+    justifyContent: element.style
+      ?.justifyContent as React.CSSProperties["justifyContent"],
+    textAlign: element.style?.textAlign as React.CSSProperties["textAlign"],
+    borderRadius: element.style
+      ?.borderRadius as React.CSSProperties["borderRadius"],
+    boxShadow: element.style?.boxShadow as React.CSSProperties["boxShadow"],
   };
 
   const interactionStyle = {

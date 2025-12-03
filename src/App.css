@@ -130,6 +130,16 @@ body,
   overflow: hidden;
 }
 
+.sidebar-item .icon-container svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.sidebar-item:hover .icon-container svg {
+  fill: #ffffff;
+}
+
 /* La barre latérale fine avec couleur jaune */
 .sidebar.ps-toolbar {
   width: 80px;
@@ -162,31 +172,13 @@ body,
   width: 100%;
 }
 
-/* Boutons de la sidebar */
-.sidebar-item {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  background-color: #fffef0;
-  color: #1e1e1e;
-  border: 1px solid #e5c600;
-  border-radius: 3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  font-size: 16px;
-  transition: all 0.1s;
-}
 
 .sidebar-item:hover {
-  background-color: #ffffff;
   border-color: #d4a000;
   box-shadow: 0 0 4px rgba(212, 160, 0, 0.4);
 }
 
 .sidebar-item:active {
-  background-color: #fff8dc;
   border-color: #d4a000;
   transform: scale(0.95);
 }

@@ -1,13 +1,14 @@
 import { useDraggable } from '@dnd-kit/core';
 import type { ElementType } from '../../types/editor';
+import React from "react";
 
 interface Props {
   type: ElementType;
-  label: string;
+  icon: React.ReactNode;
   title: string;
 }
 
-export const SidebarItem = ({ type, label, title }: Props) => {
+export const SidebarItem = ({ type, icon, title }: Props) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: `sidebar-item-${type}`,
     data: { type },
@@ -28,7 +29,9 @@ export const SidebarItem = ({ type, label, title }: Props) => {
       {...attributes}
       className="sidebar-item group"
     >
-      {label}
+      <div className="icon-container">
+        {icon}
+      </div>
       <span className="tooltip-text">{title}</span>
     </div>
   );
