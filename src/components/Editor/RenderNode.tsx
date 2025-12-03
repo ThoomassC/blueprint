@@ -658,7 +658,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     description: "Texte",
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
+                    style: { fontFamily: "Arial", textAlign: "left" },
                     attributes: { htmlId: "", className: "" },
                   });
                 }}
@@ -685,7 +685,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     description: "Email",
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
+                    style: { fontFamily: "Arial", textAlign: "left" },
                     attributes: { htmlId: "", className: "" },
                   });
                 }}
@@ -712,7 +712,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     description: "Nombre",
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
+                    style: { fontFamily: "Arial", textAlign: "left" },
                     attributes: { htmlId: "", className: "" },
                   });
                 }}
@@ -739,7 +739,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
                     description: "Date",
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
+                    style: { fontFamily: "Arial", textAlign: "left" },
                     attributes: { htmlId: "", className: "" },
                   });
                 }}

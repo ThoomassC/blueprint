@@ -221,7 +221,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             content: "",
             x: 0,
             y: 0,
-            style: { fontFamily: "Arial" },
+            style: { fontFamily: "Arial", textAlign: "left" },
             attributes: { htmlId: "", className: "" },
           },
         ];
