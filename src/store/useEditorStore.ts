@@ -8,19 +8,27 @@ interface EditorState {
   selectedId: string | null;
   isPreviewMode: boolean;
   canvasDimensions: { width: number; height: number };
+
+  // 1. AJOUT: La propriété pour la couleur
+  canvasBackgroundColor: string;
+
   centerElement: (id: string) => void;
   addElement: (type: ElementType, x: number, y: number) => void;
   addChildToForm: (formId: string, childElement: EditorElement) => void;
   removeChildFromForm: (formId: string, childId: string) => void;
   updateFormChild: (
-    formId: string,
-    childId: string,
-    updates: Partial<EditorElement>
+      formId: string,
+      childId: string,
+      updates: Partial<EditorElement>
   ) => void;
   updatePosition: (id: string, x: number, y: number) => void;
   selectElement: (id: string | null) => void;
   removeElement: (id: string) => void;
   updateElement: (id: string, updates: Partial<EditorElement>) => void;
+
+  // 2. AJOUT: Le setter pour la couleur
+  setCanvasBackgroundColor: (color: string) => void;
+
   togglePreviewMode: () => void;
   getJSON: () => string;
 }
@@ -62,6 +70,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isPreviewMode: false,
   canvasDimensions: { width: 800, height: 1000 },
 
+  // 3. AJOUT: Initialisation de la couleur par défaut
+  canvasBackgroundColor: "#ffffff",
+
+  // 4. AJOUT: Implémentation du setter
+  setCanvasBackgroundColor: (color) => {
+    set({ canvasBackgroundColor: color });
+    // Optionnel : ajouter une annonce audio
+    // audioDescription.speak(`Couleur de fond changée`, "low"); 
+  },
+
   centerElement: (id) => {
     const state = get();
     const element = state.elements.find((el) => el.id === id);
@@ -75,16 +93,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
       set((state) => ({
         elements: state.elements.map((el) =>
-          el.id === id
-            ? { ...el, x: Math.max(0, centerX), y: Math.max(0, centerY) }
-            : el
+            el.id === id
+                ? { ...el, x: Math.max(0, centerX), y: Math.max(0, centerY) }
+                : el
         ),
       }));
 
       audioDescription.announceElementMoved(
-        element.type,
-        Math.max(0, centerX),
-        Math.max(0, centerY)
+          element.type,
+          Math.max(0, centerX),
+          Math.max(0, centerY)
       );
     }
   },
@@ -99,7 +117,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
     let defaultCoordinates: { lat: number; lng: number } | undefined =
-      undefined;
+        undefined;
     let defaultMarkers: MapMarker[] | undefined = undefined;
 
     switch (type) {
@@ -276,12 +294,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   addChildToForm: (formId, childElement) => {
     set((state) => ({
       elements: state.elements.map((el) =>
-        el.id === formId
-          ? {
-              ...el,
-              children: [...(el.children || []), childElement],
-            }
-          : el
+          el.id === formId
+              ? {
+                ...el,
+                children: [...(el.children || []), childElement],
+              }
+              : el
       ),
     }));
     audioDescription.announceFormChildAdded(childElement.type);
@@ -294,14 +312,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-        el.id === formId
-          ? {
-              ...el,
-              children: (el.children || []).filter(
-                (child) => child.id !== childId
-              ),
-            }
-          : el
+          el.id === formId
+              ? {
+                ...el,
+                children: (el.children || []).filter(
+                    (child) => child.id !== childId
+                ),
+              }
+              : el
       ),
     }));
 
@@ -317,14 +335,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-        el.id === formId
-          ? {
-              ...el,
-              children: (el.children || []).map((child) =>
-                child.id === childId ? { ...child, ...updates } : child
-              ),
-            }
-          : el
+          el.id === formId
+              ? {
+                ...el,
+                children: (el.children || []).map((child) =>
+                    child.id === childId ? { ...child, ...updates } : child
+                ),
+              }
+              : el
       ),
     }));
 
@@ -342,7 +360,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-        el.id === id ? { ...el, x, y } : el
+          el.id === id ? { ...el, x, y } : el
       ),
     }));
 
@@ -364,7 +382,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set((state) => ({
       elements: state.elements.map((el) =>
-        el.id === id ? { ...el, ...updates } : el
+          el.id === id ? { ...el, ...updates } : el
       ),
     }));
 
@@ -377,34 +395,34 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         }
         if (updates.style.backgroundColor !== undefined) {
           audioDescription.announceStyleChanged(
-            "fond",
-            updates.style.backgroundColor
+              "fond",
+              updates.style.backgroundColor
           );
         }
         if (updates.style.fontFamily !== undefined) {
           audioDescription.announceStyleChanged(
-            "police",
-            updates.style.fontFamily
+              "police",
+              updates.style.fontFamily
           );
         }
         if (updates.style.fontSize !== undefined) {
           audioDescription.announceStyleChanged(
-            "taille",
-            `${updates.style.fontSize}px`
+              "taille",
+              `${updates.style.fontSize}px`
           );
         }
       }
       if (updates.content !== undefined) {
         const contentStr =
-          typeof updates.content === "string"
-            ? updates.content
-            : String(updates.content);
+            typeof updates.content === "string"
+                ? updates.content
+                : String(updates.content);
         audioDescription.announceContentChanged(element.type, contentStr);
       }
       if (updates.description !== undefined) {
         audioDescription.announceAttributeChanged(
-          "description",
-          String(updates.description)
+            "description",
+            String(updates.description)
         );
       }
     }
@@ -431,5 +449,22 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     audioDescription.announceModeChanged(newMode);
   },
 
-  getJSON: () => JSON.stringify(get().elements, null, 2),
+  // 5. MODIFICATION MAJEURE: On exporte maintenant un objet complet
+  // au lieu de juste le tableau des éléments.
+  getJSON: () => {
+    const { elements, canvasBackgroundColor, canvasDimensions } = get();
+
+    const exportData = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      pageSettings: {
+        backgroundColor: canvasBackgroundColor,
+        width: canvasDimensions.width,
+        height: canvasDimensions.height
+      },
+      elements: elements
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  },
 }));
