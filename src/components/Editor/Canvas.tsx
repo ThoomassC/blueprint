@@ -75,6 +75,8 @@ export const Canvas = () => {
 
   const canvasWidth = 800;
   const canvasHeight = 1000;
+  const centerXPosition = canvasWidth / 2;
+  const centerYPosition = canvasHeight / 2;
 
   return (
     <div
