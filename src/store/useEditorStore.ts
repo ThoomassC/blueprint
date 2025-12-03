@@ -1,12 +1,19 @@
-import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
-import type { EditorElement, ElementType } from '../types/editor';
+import { create } from "zustand";
+import { v4 as uuidv4 } from "uuid";
+import type { EditorElement, ElementType } from "../types/editor";
 
 interface EditorState {
   elements: EditorElement[];
   selectedId: string | null;
   isPreviewMode: boolean;
   addElement: (type: ElementType, x: number, y: number) => void;
+  addChildToForm: (formId: string, childElement: EditorElement) => void;
+  removeChildFromForm: (formId: string, childId: string) => void;
+  updateFormChild: (
+    formId: string,
+    childId: string,
+    updates: Partial<EditorElement>
+  ) => void;
   updatePosition: (id: string, x: number, y: number) => void;
   selectElement: (id: string | null) => void;
   removeElement: (id: string) => void;
@@ -19,33 +26,33 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   elements: [
     {
       id: uuidv4(),
-      type: 'header',
-      content: 'Mon Super Site',
+      type: "header",
+      content: "Mon Super Site",
       x: 0,
       y: 0,
       style: {
-        width: '800px',
-        height: '80px',
-        backgroundColor: '#2c3e50',
-        color: 'white',
-        fontFamily: 'Arial',
+        width: "800px",
+        height: "80px",
+        backgroundColor: "#2c3e50",
+        color: "white",
+        fontFamily: "Arial",
       },
-      attributes: { htmlId: 'main-header', className: 'header-fixed' },
+      attributes: { htmlId: "main-header", className: "header-fixed" },
     },
     {
       id: uuidv4(),
-      type: 'footer',
-      content: '© 2025 - Tous droits réservés',
+      type: "footer",
+      content: "© 2025 - Tous droits réservés",
       x: 0,
       y: 940,
       style: {
-        width: '800px',
-        height: '60px',
-        backgroundColor: '#95a5a6',
-        color: 'white',
-        fontFamily: 'Arial',
+        width: "800px",
+        height: "60px",
+        backgroundColor: "#95a5a6",
+        color: "white",
+        fontFamily: "Arial",
       },
-      attributes: { htmlId: 'main-footer', className: '' },
+      attributes: { htmlId: "main-footer", className: "" },
     },
   ],
   selectedId: null,
@@ -53,76 +60,141 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   addElement: (type, x, y) => {
     const newId = uuidv4();
-    let defaultContent = 'Texte';
-    let defaultStyle: EditorElement['style'] = {
-      fontFamily: 'Arial',
-      color: '#000000',
+    let defaultContent = "Texte";
+    let defaultStyle: EditorElement["style"] = {
+      fontFamily: "Arial",
+      color: "#000000",
     };
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
 
     switch (type) {
-      case 'video':
-        defaultContent = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-        defaultStyle = { ...defaultStyle, width: '480px', height: '270px' };
+      case "video":
+        defaultContent = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+        defaultStyle = { ...defaultStyle, width: "480px", height: "270px" };
         break;
-      case 'image':
-        defaultContent = 'https://via.placeholder.com/300x200';
-        defaultStyle = { ...defaultStyle, width: '300px', height: 'auto' };
+      case "image":
+        defaultContent = "https://via.placeholder.com/300x200";
+        defaultStyle = { ...defaultStyle, width: "300px", height: "auto" };
         break;
-      case 'card':
-        defaultContent = 'Titre Carte';
-        defaultDescription = 'Description...';
+      case "card":
+        defaultContent = "Titre Carte";
+        defaultDescription = "Description...";
         defaultStyle = {
           ...defaultStyle,
-          width: '300px',
-          backgroundColor: '#ffffff',
-          padding: '15px',
+          width: "300px",
+          backgroundColor: "#ffffff",
+          padding: "15px",
         };
         break;
-      case 'button':
-        defaultContent = 'Bouton';
+      case "button":
+        defaultContent = "Bouton";
         defaultStyle = {
           ...defaultStyle,
-          backgroundColor: '#3498db',
-          color: '#ffffff',
-          borderRadius: '4px',
-          padding: '10px 20px',
+          backgroundColor: "#3498db",
+          color: "#ffffff",
+          borderRadius: "4px",
+          padding: "10px 20px",
         };
         break;
-      case 'header':
-        defaultContent = 'Header';
+      case "header":
+        defaultContent = "Header";
         defaultStyle = {
           ...defaultStyle,
-          width: '800px',
-          height: '80px',
-          backgroundColor: '#2c3e50',
-          color: '#ffffff',
+          width: "800px",
+          height: "80px",
+          backgroundColor: "#2c3e50",
+          color: "#ffffff",
         };
         break;
-      case 'footer':
-        defaultContent = 'Footer';
+      case "footer":
+        defaultContent = "Footer";
         defaultStyle = {
           ...defaultStyle,
-          width: '800px',
-          height: '60px',
-          backgroundColor: '#95a5a6',
-          color: '#ffffff',
+          width: "800px",
+          height: "60px",
+          backgroundColor: "#95a5a6",
+          color: "#ffffff",
         };
         break;
-      case 'title':
-        defaultContent = 'Mon Titre';
-        defaultStyle = { ...defaultStyle, color: '#2c3e50' };
+      case "title":
+        defaultContent = "Mon Titre";
+        defaultStyle = { ...defaultStyle, color: "#2c3e50" };
         break;
-      case 'select':
-        defaultContent = 'Option 1';
-        defaultOptions = ['Option 1', 'Option 2', 'Option 3'];
+      case "select":
+        defaultContent = "Option 1";
+        defaultOptions = ["Option 1", "Option 2", "Option 3"];
         break;
-      case 'input-number':
-        defaultContent = '0';
+      case "input-number":
+        defaultContent = "0";
         break;
-      case 'calendar':
-        defaultContent = new Date().toISOString().split('T')[0];
+      case "input-email":
+        defaultContent = "";
+        break;
+      case "input-text":
+        defaultContent = "";
+        break;
+      case "input-form": {
+        defaultContent = "Mon Formulaire";
+        defaultStyle = {
+          ...defaultStyle,
+          width: "400px",
+          backgroundColor: "#f8f9fa",
+          padding: "20px",
+        };
+        // Créer des inputs par défaut pour le formulaire
+        const formChildren: EditorElement[] = [
+          {
+            id: uuidv4(),
+            type: "input-email",
+            content: "",
+            x: 0,
+            y: 0,
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
+          },
+          {
+            id: uuidv4(),
+            type: "input-number",
+            content: "0",
+            x: 0,
+            y: 0,
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
+          },
+          {
+            id: uuidv4(),
+            type: "calendar",
+            content: new Date().toISOString().split("T")[0],
+            x: 0,
+            y: 0,
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
+          },
+        ];
+
+        set((state) => ({
+          elements: [
+            ...state.elements,
+            {
+              id: newId,
+              type,
+              content: defaultContent,
+              description: defaultDescription,
+              options: defaultOptions,
+              children: formChildren,
+              x,
+              y,
+              style: defaultStyle,
+              attributes: { htmlId: "", className: "" },
+            },
+          ],
+          selectedId: newId,
+        }));
+        return;
+      }
+      case "calendar":
+        defaultContent = new Date().toISOString().split("T")[0];
         break;
     }
 
@@ -138,12 +210,52 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           x,
           y,
           style: defaultStyle,
-          attributes: { htmlId: '', className: '' },
+          attributes: { htmlId: "", className: "" },
         },
       ],
       selectedId: newId,
     }));
   },
+
+  addChildToForm: (formId, childElement) =>
+    set((state) => ({
+      elements: state.elements.map((el) =>
+        el.id === formId
+          ? {
+              ...el,
+              children: [...(el.children || []), childElement],
+            }
+          : el
+      ),
+    })),
+
+  removeChildFromForm: (formId, childId) =>
+    set((state) => ({
+      elements: state.elements.map((el) =>
+        el.id === formId
+          ? {
+              ...el,
+              children: (el.children || []).filter(
+                (child) => child.id !== childId
+              ),
+            }
+          : el
+      ),
+    })),
+
+  updateFormChild: (formId, childId, updates) =>
+    set((state) => ({
+      elements: state.elements.map((el) =>
+        el.id === formId
+          ? {
+              ...el,
+              children: (el.children || []).map((child) =>
+                child.id === childId ? { ...child, ...updates } : child
+              ),
+            }
+          : el
+      ),
+    })),
 
   updatePosition: (id, x, y) =>
     set((state) => ({

@@ -1,6 +1,7 @@
 import type { EditorElement } from "../../types/editor";
 import { useEditorStore } from "../../store/useEditorStore";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 const getEmbedUrl = (url: string) => {
   if (url.includes("youtube.com/watch?v=")) {
@@ -15,6 +16,11 @@ const getEmbedUrl = (url: string) => {
 export const RenderNode = ({ element }: { element: EditorElement }) => {
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const updateElement = useEditorStore((state) => state.updateElement);
+  const addChildToForm = useEditorStore((state) => state.addChildToForm);
+  const removeChildFromForm = useEditorStore(
+    (state) => state.removeChildFromForm
+  );
+  const updateFormChild = useEditorStore((state) => state.updateFormChild);
   const [emailError, setEmailError] = useState<string>("");
 
   const styles: React.CSSProperties = {
@@ -158,6 +164,28 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
           }
         />
       );
+    case "input-text":
+      return (
+        <input
+          type="text"
+          value={element.content}
+          placeholder={element.description || "Entrez du texte..."}
+          style={{
+            ...interactionStyle,
+            padding: "10px 12px",
+            width: "100%",
+            border: "2px solid #e0e0e0",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontFamily: styles.fontFamily,
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+          onChange={(e) =>
+            updateElement(element.id, { content: e.target.value })
+          }
+        />
+      );
     case "input-email": {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isValidEmail = emailRegex.test(element.content);
@@ -255,6 +283,357 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
             updateElement(element.id, { content: e.target.value })
           }
         />
+      );
+
+    case "input-form":
+      return (
+        <form
+          style={{
+            ...styles,
+            border: "2px solid #3498db",
+            borderRadius: "12px",
+            padding: "20px",
+            backgroundColor: "#f8f9fa",
+            minWidth: "300px",
+            maxWidth: "500px",
+          }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (isPreviewMode) {
+              alert("Formulaire soumis !");
+            }
+          }}
+        >
+          <h3
+            style={{
+              marginTop: 0,
+              marginBottom: "15px",
+              color: "#2c3e50",
+              fontFamily: styles.fontFamily,
+            }}
+          >
+            {element.content}
+          </h3>
+
+          {/* Inputs du formulaire */}
+          {element.children && element.children.length > 0 ? (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              {element.children.map((child) => (
+                <div key={child.id} style={{ position: "relative" }}>
+                  {!isPreviewMode && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={child.description || ""}
+                        placeholder="Label du champ..."
+                        style={{
+                          flex: 1,
+                          padding: "4px 8px",
+                          fontSize: "12px",
+                          border: "1px solid #ddd",
+                          borderRadius: "4px",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            description: e.target.value,
+                          })
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <button
+                        type="button"
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: "18px",
+                          border: "none",
+                          background: "#f44336",
+                          color: "white",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeChildFromForm(element.id, child.id);
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+                  {child.description && isPreviewMode && (
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                        marginBottom: "4px",
+                        color: "#555",
+                      }}
+                    >
+                      {child.description}
+                    </label>
+                  )}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {child.type === "input-text" && (
+                      <input
+                        type="text"
+                        value={child.content}
+                        placeholder={child.description || "Entrez du texte..."}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            content: e.target.value,
+                          })
+                        }
+                      />
+                    )}
+                    {child.type === "input-email" && (
+                      <input
+                        type="email"
+                        value={child.content}
+                        placeholder={child.description || "exemple@email.com"}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            content: e.target.value,
+                          })
+                        }
+                      />
+                    )}
+                    {child.type === "input-number" && (
+                      <input
+                        type="number"
+                        value={child.content}
+                        placeholder={child.description || "0"}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            content: e.target.value,
+                          })
+                        }
+                      />
+                    )}
+                    {child.type === "calendar" && (
+                      <input
+                        type="date"
+                        value={child.content}
+                        style={{
+                          ...interactionStyle,
+                          padding: "10px 12px",
+                          width: "100%",
+                          border: "2px solid #e0e0e0",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontFamily: styles.fontFamily,
+                          outline: "none",
+                          boxSizing: "border-box",
+                        }}
+                        onChange={(e) =>
+                          updateFormChild(element.id, child.id, {
+                            content: e.target.value,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: "#666", fontSize: "14px", fontStyle: "italic" }}>
+              Ajoutez des champs ci-dessous
+            </p>
+          )}
+
+          {/* Boutons d'ajout de champs (en mode édition uniquement) */}
+          {!isPreviewMode && (
+            <div
+              style={{
+                marginTop: "15px",
+                display: "flex",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              <button
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  border: "1px solid #3498db",
+                  backgroundColor: "white",
+                  color: "#3498db",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addChildToForm(element.id, {
+                    id: uuidv4(),
+                    type: "input-text",
+                    content: "",
+                    description: "Texte",
+                    x: 0,
+                    y: 0,
+                    style: { fontFamily: "Arial" },
+                    attributes: { htmlId: "", className: "" },
+                  });
+                }}
+              >
+                + Texte
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  border: "1px solid #3498db",
+                  backgroundColor: "white",
+                  color: "#3498db",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addChildToForm(element.id, {
+                    id: uuidv4(),
+                    type: "input-email",
+                    content: "",
+                    description: "Email",
+                    x: 0,
+                    y: 0,
+                    style: { fontFamily: "Arial" },
+                    attributes: { htmlId: "", className: "" },
+                  });
+                }}
+              >
+                + Email
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  border: "1px solid #3498db",
+                  backgroundColor: "white",
+                  color: "#3498db",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addChildToForm(element.id, {
+                    id: uuidv4(),
+                    type: "input-number",
+                    content: "0",
+                    description: "Nombre",
+                    x: 0,
+                    y: 0,
+                    style: { fontFamily: "Arial" },
+                    attributes: { htmlId: "", className: "" },
+                  });
+                }}
+              >
+                + Nombre
+              </button>
+              <button
+                type="button"
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "12px",
+                  border: "1px solid #3498db",
+                  backgroundColor: "white",
+                  color: "#3498db",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addChildToForm(element.id, {
+                    id: uuidv4(),
+                    type: "calendar",
+                    content: new Date().toISOString().split("T")[0],
+                    description: "Date",
+                    x: 0,
+                    y: 0,
+                    style: { fontFamily: "Arial" },
+                    attributes: { htmlId: "", className: "" },
+                  });
+                }}
+              >
+                + Date
+              </button>
+            </div>
+          )}
+
+          {/* Bouton Submit */}
+          <button
+            type="submit"
+            style={{
+              ...interactionStyle,
+              marginTop: "15px",
+              padding: "10px 20px",
+              backgroundColor: "#3498db",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: "bold",
+              cursor: isPreviewMode ? "pointer" : "default",
+              width: "100%",
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              if (isPreviewMode) {
+                e.currentTarget.style.backgroundColor = "#2980b9";
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#3498db";
+            }}
+          >
+            Envoyer
+          </button>
+        </form>
       );
 
     default:

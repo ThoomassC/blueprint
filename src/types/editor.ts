@@ -10,6 +10,8 @@ export type ElementType =
   | "select"
   | "input-number"
   | "input-email"
+  | "input-text"
+  | "input-form"
   | "calendar"
   | "title";
 
@@ -27,6 +29,7 @@ export interface EditorElement {
   slides?: Slide[];
   options?: string[];
   description?: string;
+  children?: EditorElement[];
 
   x: number;
   y: number;
