@@ -178,9 +178,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const updateFormChild = useEditorStore((state) => state.updateFormChild);
   const removeElement = useEditorStore((state) => state.removeElement);
 
-  const centerElementOnCanvas = useEditorStore(
-    (state) => state.centerElementOnCanvas
-  );
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const isSelected = !isPreviewMode && selectedId === element.id;
 
