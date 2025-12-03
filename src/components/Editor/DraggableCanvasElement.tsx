@@ -1,8 +1,8 @@
-import { useDraggable } from '@dnd-kit/core';
-import type { EditorElement } from '../../types/editor';
-import { RenderNode } from './RenderNode';
-import { useEditorStore } from '../../store/useEditorStore';
-import React from 'react';
+import { useDraggable } from "@dnd-kit/core";
+import type { EditorElement } from "../../types/editor";
+import { RenderNode } from "./RenderNode";
+import { useEditorStore } from "../../store/useEditorStore";
+import React from "react";
 
 interface Props {
   element: EditorElement;
@@ -48,6 +48,27 @@ const TOOLBAR_CONFIG: Record<
     showFont: true,
     showTechConfig: true,
   },
+  "input-text": {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  "input-email": {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  "input-number": {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
   textarea: {
     showContent: true,
     showStyle: true,
@@ -61,7 +82,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   video: {
     showContent: false,
@@ -69,7 +90,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   card: {
     showContent: false,
@@ -77,7 +98,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['card'],
+    customFields: ["card"],
   },
   select: {
     showContent: false,
@@ -85,7 +106,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['options'],
+    customFields: ["options"],
   },
   carousel: {
     showContent: false,
@@ -93,7 +114,7 @@ const TOOLBAR_CONFIG: Record<
     showColors: true,
     showFont: false,
     showTechConfig: true,
-    customFields: ['slides'],
+    customFields: ["slides"],
   },
   map: {
     showContent: false,
@@ -101,19 +122,17 @@ const TOOLBAR_CONFIG: Record<
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['location'],
+    customFields: ["location"],
   },
 };
 
 export const DraggableCanvasElement = ({ element }: Props) => {
   const selectElement = useEditorStore((state) => state.selectElement);
   const selectedId = useEditorStore((state) => state.selectedId);
+  const selectedChildId = useEditorStore((state) => state.selectedChildId);
   const updateElement = useEditorStore((state) => state.updateElement);
+  const updateFormChild = useEditorStore((state) => state.updateFormChild);
   const removeElement = useEditorStore((state) => state.removeElement);
-  // Correction : Utilisation du bon nom de fonction du store
-  const centerElementOnCanvas = useEditorStore(
-    (state) => state.centerElementOnCanvas
-  );
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const isSelected = !isPreviewMode && selectedId === element.id;
 
@@ -125,24 +144,43 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     });
 
   const style: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     left: element.x + (transform ? transform.x : 0),
     top: element.y + (transform ? transform.y : 0),
-    cursor: isPreviewMode ? 'default' : isDragging ? 'grabbing' : 'grab',
+    cursor: isPreviewMode ? "default" : isDragging ? "grabbing" : "grab",
     zIndex: isDragging ? 1000 : isSelected ? 100 : 1,
   };
 
   const config = TOOLBAR_CONFIG[element.type] || TOOLBAR_CONFIG.text;
 
+  // Déterminer si on édite un enfant ou le parent
+  const selectedChild = selectedChildId
+    ? element.children?.find((child) => child.id === selectedChildId)
+    : null;
+
+  const currentElement = selectedChild || element;
+  const currentConfig = selectedChild
+    ? TOOLBAR_CONFIG[selectedChild.type] || TOOLBAR_CONFIG.text
+    : config;
+
   const updateStyle = (key: string, value: string | number) => {
-    const finalValue = typeof value === 'number' ? `${value}px` : value;
-    updateElement(element.id, {
-      style: { ...element.style, [key]: finalValue },
-    });
+    const finalValue = typeof value === "number" ? `${value}px` : value;
+
+    if (selectedChild) {
+      // Mettre à jour le style de l'enfant
+      updateFormChild(element.id, selectedChild.id, {
+        style: { ...selectedChild.style, [key]: finalValue },
+      });
+    } else {
+      // Mettre à jour le style du parent
+      updateElement(element.id, {
+        style: { ...element.style, [key]: finalValue },
+      });
+    }
   };
 
   const updateCurrentSlide = (
-    key: 'title' | 'description' | 'imageUrl',
+    key: "title" | "description" | "imageUrl",
     value: string
   ) => {
     const currentIndex = parseInt(element.content) || 0;
@@ -156,40 +194,40 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const renderCustomFields = () => {
     const currentIndex = parseInt(element.content) || 0;
 
-    if (config.customFields?.includes('slides')) {
+    if (config.customFields?.includes("slides")) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
             SLIDE {currentIndex + 1}
           </label>
           <input
             type="text"
             placeholder="Titre"
             className="toolbar-input"
-            value={element.slides?.[currentIndex]?.title || ''}
-            onChange={(e) => updateCurrentSlide('title', e.target.value)}
+            value={element.slides?.[currentIndex]?.title || ""}
+            onChange={(e) => updateCurrentSlide("title", e.target.value)}
           />
           <input
             type="text"
             placeholder="URL Image"
             className="toolbar-input"
-            value={element.slides?.[currentIndex]?.imageUrl || ''}
-            onChange={(e) => updateCurrentSlide('imageUrl', e.target.value)}
+            value={element.slides?.[currentIndex]?.imageUrl || ""}
+            onChange={(e) => updateCurrentSlide("imageUrl", e.target.value)}
           />
           <textarea
             placeholder="Description"
             className="toolbar-textarea"
-            value={element.slides?.[currentIndex]?.description || ''}
-            onChange={(e) => updateCurrentSlide('description', e.target.value)}
+            value={element.slides?.[currentIndex]?.description || ""}
+            onChange={(e) => updateCurrentSlide("description", e.target.value)}
           />
-          <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+          <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
             <button
               className="btn-add-option"
               onClick={() =>
                 updateElement(element.id, {
                   slides: [
                     ...(element.slides || []),
-                    { title: 'New', description: '', imageUrl: '' },
+                    { title: "New", description: "", imageUrl: "" },
                   ],
                 })
               }
@@ -203,7 +241,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   slides: element.slides?.filter(
                     (_: unknown, i: number) => i !== currentIndex
                   ),
-                  content: '0',
+                  content: "0",
                 })
               }
             >
@@ -214,16 +252,16 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('url')) {
+    if (config.customFields?.includes("url")) {
       return (
         <>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>
-            URL {element.type === 'image' ? 'Image' : 'Vidéo'}
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            URL {element.type === "image" ? "Image" : "Vidéo"}
           </label>
           <input
             className="toolbar-input"
             placeholder={`https://example.com/${element.type}.${
-              element.type === 'image' ? 'jpg' : 'mp4'
+              element.type === "image" ? "jpg" : "mp4"
             }`}
             value={element.content}
             onChange={(e) =>
@@ -234,10 +272,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('card')) {
+    if (config.customFields?.includes("card")) {
       return (
         <>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>Titre</label>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Titre</label>
           <input
             className="toolbar-input"
             placeholder="Titre de la carte"
@@ -246,7 +284,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               updateElement(element.id, { content: e.target.value })
             }
           />
-          <label style={{ fontSize: '9px', color: '#aaa', marginTop: '5px' }}>
+          <label style={{ fontSize: "9px", color: "#aaa", marginTop: "5px" }}>
             Description
           </label>
           <textarea
@@ -261,12 +299,12 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('options')) {
+    if (config.customFields?.includes("options")) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>Options</label>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Options</label>
           {element.options?.map((opt, i) => (
-            <div key={i} style={{ display: 'flex', gap: '5px' }}>
+            <div key={i} style={{ display: "flex", gap: "5px" }}>
               <input
                 value={opt}
                 className="toolbar-input-small"
@@ -305,10 +343,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes('location')) {
+    if (config.customFields?.includes("location")) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-          <label style={{ fontSize: '9px', color: '#aaa' }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
             NOM DE LA CARTE
           </label>
           <input
@@ -322,38 +360,38 @@ export const DraggableCanvasElement = ({ element }: Props) => {
 
           <div
             style={{
-              marginTop: '10px',
-              borderTop: '1px solid #ddd',
-              paddingTop: '10px',
+              marginTop: "10px",
+              borderTop: "1px solid #ddd",
+              paddingTop: "10px",
             }}
           >
-            <label style={{ fontSize: '9px', color: '#aaa' }}>
+            <label style={{ fontSize: "9px", color: "#aaa" }}>
               POINTS SUR LA CARTE
             </label>
             {(element.markers || []).map((marker, i) => (
               <div
                 key={marker.id}
                 style={{
-                  marginTop: '5px',
-                  padding: '8px',
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: '4px',
-                  border: '1px solid #e0e0e0',
+                  marginTop: "5px",
+                  padding: "8px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "4px",
+                  border: "1px solid #e0e0e0",
                 }}
               >
                 <div
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '5px',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "5px",
                   }}
                 >
                   <label
                     style={{
-                      fontSize: '8px',
-                      color: '#666',
-                      fontWeight: 'bold',
+                      fontSize: "8px",
+                      color: "#666",
+                      fontWeight: "bold",
                     }}
                   >
                     POINT {i + 1}
@@ -375,7 +413,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   className="toolbar-input"
                   placeholder="Nom du point"
                   value={marker.label}
-                  style={{ marginBottom: '3px', fontSize: '11px' }}
+                  style={{ marginBottom: "3px", fontSize: "11px" }}
                   onChange={(e) => {
                     const newMarkers = [...(element.markers || [])];
                     newMarkers[i] = { ...marker, label: e.target.value };
@@ -383,7 +421,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   }}
                 />
                 <div
-                  style={{ display: 'flex', gap: '3px', marginBottom: '3px' }}
+                  style={{ display: "flex", gap: "3px", marginBottom: "3px" }}
                 >
                   <input
                     type="number"
@@ -391,7 +429,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                     className="toolbar-input-small"
                     placeholder="Lat"
                     value={marker.lat}
-                    style={{ fontSize: '10px' }}
+                    style={{ fontSize: "10px" }}
                     onChange={(e) => {
                       const newMarkers = [...(element.markers || [])];
                       newMarkers[i] = {
@@ -407,7 +445,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                     className="toolbar-input-small"
                     placeholder="Lng"
                     value={marker.lng}
-                    style={{ fontSize: '10px' }}
+                    style={{ fontSize: "10px" }}
                     onChange={(e) => {
                       const newMarkers = [...(element.markers || [])];
                       newMarkers[i] = {
@@ -419,20 +457,20 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   />
                 </div>
                 <div
-                  style={{ display: 'flex', gap: '3px', alignItems: 'center' }}
+                  style={{ display: "flex", gap: "3px", alignItems: "center" }}
                 >
-                  <label style={{ fontSize: '8px', color: '#666' }}>
+                  <label style={{ fontSize: "8px", color: "#666" }}>
                     Couleur:
                   </label>
                   <input
                     type="color"
-                    value={marker.color || '#FF5252'}
+                    value={marker.color || "#FF5252"}
                     style={{
-                      width: '40px',
-                      height: '25px',
-                      border: '1px solid #ccc',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
+                      width: "40px",
+                      height: "25px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                      cursor: "pointer",
                     }}
                     onChange={(e) => {
                       const newMarkers = [...(element.markers || [])];
@@ -446,27 +484,27 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   <div
                     style={{
                       flex: 1,
-                      fontSize: '9px',
-                      color: '#999',
-                      textAlign: 'right',
+                      fontSize: "9px",
+                      color: "#999",
+                      textAlign: "right",
                     }}
                   >
-                    {marker.color || '#FF5252'}
+                    {marker.color || "#FF5252"}
                   </div>
                 </div>
               </div>
             ))}
             <button
               className="btn-add-option"
-              style={{ marginTop: '5px', width: '100%' }}
+              style={{ marginTop: "5px", width: "100%" }}
               onClick={() => {
                 const colors = [
-                  '#FF5252',
-                  '#4CAF50',
-                  '#2196F3',
-                  '#FFC107',
-                  '#9C27B0',
-                  '#FF9800',
+                  "#FF5252",
+                  "#4CAF50",
+                  "#2196F3",
+                  "#FFC107",
+                  "#9C27B0",
+                  "#FF9800",
                 ];
                 const colorIndex =
                   (element.markers?.length || 0) % colors.length;
@@ -500,120 +538,171 @@ export const DraggableCanvasElement = ({ element }: Props) => {
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className="toolbar-content">
+          {/* Indicateur si un enfant est sélectionné */}
+          {selectedChild && (
+            <div
+              style={{
+                backgroundColor: "#2196F3",
+                color: "white",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                marginBottom: "10px",
+                fontSize: "11px",
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+            >
+              🎯 Élément sélectionné :{" "}
+              {selectedChild.type === "input-text"
+                ? "Texte"
+                : selectedChild.type === "input-email"
+                ? "Email"
+                : selectedChild.type === "input-number"
+                ? "Nombre"
+                : selectedChild.type === "calendar"
+                ? "Date"
+                : "Champ"}
+            </div>
+          )}
+
+          {/* Aide pour le formulaire */}
+          {!selectedChild && element.type === "input-form" && (
+            <div
+              style={{
+                backgroundColor: "#fff3cd",
+                color: "#856404",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                marginBottom: "10px",
+                fontSize: "10px",
+                border: "1px solid #ffeeba",
+              }}
+            >
+              💡 <strong>Astuce :</strong> Cliquez sur un champ du formulaire
+              pour modifier son alignement individuellement
+            </div>
+          )}
+
           {/* Section Contenu */}
-          {(config.showContent || config.customFields) && (
+          {(currentConfig.showContent || currentConfig.customFields) && (
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 📝 CONTENU
               </label>
 
-              {config.customFields ? (
+              {currentConfig.customFields ? (
                 renderCustomFields()
               ) : (
                 <input
                   className="toolbar-input"
                   placeholder="Contenu..."
-                  value={element.content}
-                  onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                  }
+                  value={currentElement.content}
+                  onChange={(e) => {
+                    if (selectedChild) {
+                      updateFormChild(element.id, selectedChild.id, {
+                        content: e.target.value,
+                      });
+                    } else {
+                      updateElement(element.id, { content: e.target.value });
+                    }
+                  }}
                 />
               )}
             </div>
           )}
 
           {/* Section Style */}
-          {config.showStyle && (
+          {currentConfig.showStyle && (
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 🎨 STYLE
               </label>
 
-              {config.showColors && (
+              {currentConfig.showColors && (
                 <div
-                  style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}
+                  style={{ display: "flex", gap: "10px", marginBottom: "8px" }}
                 >
                   <div>
                     <label
                       style={{
-                        fontSize: '8px',
-                        color: '#aaa',
-                        display: 'block',
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
                       }}
                     >
                       Fond
                     </label>
                     <input
                       type="color"
-                      value={element.style?.backgroundColor || '#ffffff'}
+                      value={currentElement.style?.backgroundColor || "#ffffff"}
                       onChange={(e) =>
-                        updateStyle('backgroundColor', e.target.value)
+                        updateStyle("backgroundColor", e.target.value)
                       }
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        border: 'none',
-                        cursor: 'pointer',
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                     />
                   </div>
                   <div>
                     <label
                       style={{
-                        fontSize: '8px',
-                        color: '#aaa',
-                        display: 'block',
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
                       }}
                     >
                       Texte
                     </label>
                     <input
                       type="color"
-                      value={element.style?.color || '#000000'}
-                      onChange={(e) => updateStyle('color', e.target.value)}
+                      value={currentElement.style?.color || "#000000"}
+                      onChange={(e) => updateStyle("color", e.target.value)}
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        border: 'none',
-                        cursor: 'pointer',
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
                       }}
                     />
                   </div>
                 </div>
               )}
 
-              {config.showFont && (
+              {currentConfig.showFont && (
                 <>
                   <label
                     style={{
-                      fontSize: '9px',
-                      color: '#aaa',
-                      display: 'block',
-                      marginBottom: '2px',
+                      fontSize: "9px",
+                      color: "#aaa",
+                      display: "block",
+                      marginBottom: "2px",
                     }}
                   >
                     Police
                   </label>
                   <select
                     className="toolbar-input"
-                    value={element.style?.fontFamily || 'Arial'}
-                    onChange={(e) => updateStyle('fontFamily', e.target.value)}
+                    value={currentElement.style?.fontFamily || "Arial"}
+                    onChange={(e) => updateStyle("fontFamily", e.target.value)}
                   >
                     <option value="Arial">Arial</option>
                     <option value="Courier New">Courier</option>
@@ -631,119 +720,70 @@ export const DraggableCanvasElement = ({ element }: Props) => {
           <div className="toolbar-section">
             <label
               style={{
-                fontSize: '10px',
-                fontWeight: 'bold',
-                color: '#888',
-                marginBottom: '5px',
-                display: 'block',
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#888",
+                marginBottom: "5px",
+                display: "block",
               }}
             >
               📐 ALIGNEMENT
             </label>
 
-            <label
+            <button
+              onClick={() => {
+                const isCentered = currentElement.style?.textAlign === "center";
+                updateStyle("textAlign", isCentered ? "left" : "center");
+              }}
               style={{
-                fontSize: '9px',
-                color: '#aaa',
-                display: 'block',
-                marginBottom: '5px',
+                width: "100%",
+                padding: "8px",
+                fontSize: "12px",
+                backgroundColor:
+                  currentElement.style?.textAlign === "center"
+                    ? "#27ae60"
+                    : "#e0e0e0",
+                color:
+                  currentElement.style?.textAlign === "center"
+                    ? "white"
+                    : "#333",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontWeight:
+                  currentElement.style?.textAlign === "center"
+                    ? "bold"
+                    : "normal",
               }}
             >
-              Contenu
-            </label>
-            <div style={{ display: 'flex', gap: '5px' }}>
-              <button
-                onClick={() => updateStyle('textAlign', 'left')}
-                style={{
-                  flex: 1,
-                  padding: '6px',
-                  fontSize: '11px',
-                  backgroundColor:
-                    element.style?.textAlign === 'left' ? '#27ae60' : '#e0e0e0',
-                  color: element.style?.textAlign === 'left' ? 'white' : '#333',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  fontWeight:
-                    element.style?.textAlign === 'left' ? 'bold' : 'normal',
-                }}
-              >
-                Gauche
-              </button>
-              <button
-                onClick={() => {
-                  updateStyle('textAlign', 'center');
-                  if (element.type === 'input-form') {
-                    updateStyle('display', 'flex');
-                    updateStyle('flexDirection', 'column');
-                    updateStyle('alignItems', 'center');
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  padding: '6px',
-                  fontSize: '11px',
-                  backgroundColor:
-                    element.style?.textAlign === 'center'
-                      ? '#27ae60'
-                      : '#e0e0e0',
-                  color:
-                    element.style?.textAlign === 'center' ? 'white' : '#333',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  fontWeight:
-                    element.style?.textAlign === 'center' ? 'bold' : 'normal',
-                }}
-              >
-                Centre
-              </button>
-              <button
-                onClick={() => updateStyle('textAlign', 'right')}
-                style={{
-                  flex: 1,
-                  padding: '6px',
-                  fontSize: '11px',
-                  backgroundColor:
-                    element.style?.textAlign === 'right'
-                      ? '#27ae60'
-                      : '#e0e0e0',
-                  color:
-                    element.style?.textAlign === 'right' ? 'white' : '#333',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  fontWeight:
-                    element.style?.textAlign === 'right' ? 'bold' : 'normal',
-                }}
-              >
-                Droite
-              </button>
-            </div>
+              {currentElement.style?.textAlign === "center"
+                ? "✓ Texte centré"
+                : "Centrer le texte"}
+            </button>
           </div>
 
           {/* Section Config Technique */}
-          {config.showTechConfig && (
+          {currentConfig.showTechConfig && !selectedChild && (
             <div className="toolbar-section">
               <label
                 style={{
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  color: '#888',
-                  marginBottom: '5px',
-                  display: 'block',
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
                 }}
               >
                 ⚙️ CONFIG TECH
               </label>
 
-              <div style={{ marginBottom: '5px' }}>
+              <div style={{ marginBottom: "5px" }}>
                 <label
                   style={{
-                    fontSize: '9px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
                   ID Unique (JS)
@@ -752,7 +792,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="text"
                   className="toolbar-input"
                   placeholder="ex: mon-bouton-1"
-                  value={element.attributes?.htmlId || ''}
+                  value={element.attributes?.htmlId || ""}
                   onChange={(e) =>
                     updateElement(element.id, {
                       attributes: {
@@ -767,10 +807,10 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               <div>
                 <label
                   style={{
-                    fontSize: '9px',
-                    color: '#aaa',
-                    display: 'block',
-                    marginBottom: '2px',
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
                   }}
                 >
                   Classes CSS
@@ -779,7 +819,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                   type="text"
                   className="toolbar-input"
                   placeholder="ex: btn-lg shadow-md"
-                  value={element.attributes?.className || ''}
+                  value={element.attributes?.className || ""}
                   onChange={(e) =>
                     updateElement(element.id, {
                       attributes: {
@@ -795,24 +835,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
 
           {/* Actions */}
           <div className="toolbar-actions">
-            <button
-              onClick={() => centerElementOnCanvas(element.id)}
-              className="toolbar-center-btn"
-              title="Centrer l'élément sur le canvas"
-              style={{
-                padding: '8px 12px',
-                backgroundColor: '#f39c12',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                marginRight: '8px',
-              }}
-            >
-              📍 Centrer
-            </button>
             <button
               onClick={() => removeElement(element.id)}
               className="toolbar-delete-btn"
