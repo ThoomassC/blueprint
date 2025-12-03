@@ -48,6 +48,9 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
     justifyContent: element.style
       ?.justifyContent as React.CSSProperties['justifyContent'],
     textAlign: element.style?.textAlign as React.CSSProperties['textAlign'],
+    borderRadius: element.style
+      ?.borderRadius as React.CSSProperties['borderRadius'],
+    boxShadow: element.style?.boxShadow as React.CSSProperties['boxShadow'],
   };
 
   const interactionStyle = {
