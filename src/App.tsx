@@ -94,6 +94,83 @@ function App() {
     if (type) setActiveDragType(type);
   };
 
+  // Zone protégée autour du logo (haut gauche)
+  const LOGO_PROTECTED_ZONE = {
+    x: 0,
+    y: 0,
+    width: 120, // Logo 80px + marge droite
+    height: 100, // Hauteur du logo + marges
+  };
+
+  // Récupérer le header pour définir sa zone protégée
+  const getHeaderElement = () => {
+    return useEditorStore
+      .getState()
+      .elements.find((el) => el.type === "header");
+  };
+
+  const isInProtectedZone = (
+    x: number,
+    y: number,
+    elementWidth = 100,
+    elementHeight = 100
+  ) => {
+    const elementRight = x + elementWidth;
+    const elementBottom = y + elementHeight;
+
+    // Vérifier collision avec le logo
+    const logoZoneRight = LOGO_PROTECTED_ZONE.x + LOGO_PROTECTED_ZONE.width;
+    const logoZoneBottom = LOGO_PROTECTED_ZONE.y + LOGO_PROTECTED_ZONE.height;
+
+    const collidesWithLogo =
+      x < logoZoneRight &&
+      elementRight > LOGO_PROTECTED_ZONE.x &&
+      y < logoZoneBottom &&
+      elementBottom > LOGO_PROTECTED_ZONE.y;
+
+    // Vérifier collision avec le header
+    const headerElement = getHeaderElement();
+    let collidesWithHeader = false;
+
+    if (headerElement) {
+      const headerWidth = parseFloat(headerElement.style?.width || "800");
+      const headerHeight = parseFloat(headerElement.style?.height || "80");
+      const headerRight = headerElement.x + headerWidth;
+      const headerBottom = headerElement.y + headerHeight;
+
+      collidesWithHeader =
+        x < headerRight &&
+        elementRight > headerElement.x &&
+        y < headerBottom &&
+        elementBottom > headerElement.y;
+    }
+
+    return collidesWithLogo || collidesWithHeader;
+  };
+
+  const adjustPositionIfInProtectedZone = (
+    x: number,
+    y: number,
+    elementWidth = 100,
+    elementHeight = 100
+  ) => {
+    if (!isInProtectedZone(x, y, elementWidth, elementHeight)) {
+      return { x, y };
+    }
+
+    // Toujours placer en dessous du header (qui contient aussi le logo)
+    const headerElement = getHeaderElement();
+    if (headerElement) {
+      const headerHeight = parseFloat(headerElement.style?.height || "80");
+      const belowHeader = headerElement.y + headerHeight + 10;
+      return { x, y: belowHeader };
+    }
+
+    // Fallback si pas de header : placer en dessous de la zone logo
+    const belowLogo = LOGO_PROTECTED_ZONE.y + LOGO_PROTECTED_ZONE.height + 10;
+    return { x, y: belowLogo };
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over, delta } = event;
     setActiveDragType(null);
@@ -109,22 +186,40 @@ function App() {
         .getState()
         .elements.find((e) => e.id === elementId);
       if (currentElement) {
-        updatePosition(
-          elementId,
-          currentElement.x + delta.x,
-          currentElement.y + delta.y
+        let newX = currentElement.x + delta.x;
+        let newY = currentElement.y + delta.y;
+
+        // Récupérer les dimensions de l'élément
+        const elementWidth = parseFloat(currentElement.style?.width || "100");
+        const elementHeight = parseFloat(currentElement.style?.height || "100");
+
+        // Ajuster la position si elle entre en collision avec la zone du logo
+        const adjustedPosition = adjustPositionIfInProtectedZone(
+          newX,
+          newY,
+          elementWidth,
+          elementHeight
         );
+        newX = adjustedPosition.x;
+        newY = adjustedPosition.y;
+
+        updatePosition(elementId, newX, newY);
       }
     } else {
       const canvasRect = document
         .querySelector(".page-sheet")
         ?.getBoundingClientRect();
-      const dropX = active.rect.current?.translated
+      let dropX = active.rect.current?.translated
         ? active.rect.current.translated.left - (canvasRect?.left ?? 0)
         : 0;
-      const dropY = active.rect.current?.translated
+      let dropY = active.rect.current?.translated
         ? active.rect.current.translated.top - (canvasRect?.top ?? 0)
         : 0;
+
+      // Ajuster la position si elle entre en collision avec la zone du logo
+      const adjustedPosition = adjustPositionIfInProtectedZone(dropX, dropY);
+      dropX = adjustedPosition.x;
+      dropY = adjustedPosition.y;
 
       addElement(type, dropX, dropY);
     }
