@@ -1,19 +1,19 @@
 export type ElementType =
-  | "text"
-  | "button"
-  | "image"
-  | "video"
-  | "header"
-  | "footer"
-  | "card"
-  | "carousel"
-  | "select"
-  | "input-number"
-  | "input-email"
-  | "input-text"
-  | "input-form"
-  | "calendar"
-  | "title";
+  | 'text'
+  | 'button'
+  | 'image'
+  | 'video'
+  | 'header'
+  | 'footer'
+  | 'card'
+  | 'carousel'
+  | 'select'
+  | 'input-number'
+  | 'input-email'
+  | 'input-text'
+  | 'input-form'
+  | 'calendar'
+  | 'title';
 
 export interface Slide {
   title: string;
@@ -48,5 +48,9 @@ export interface EditorElement {
     fontSize?: string;
     borderRadius?: string;
     fontFamily?: string;
+    verticalAlign?: 'top' | 'middle' | 'bottom';
+    horizontalAlign?: 'left' | 'center' | 'right';
+    textAlign?: 'left' | 'center' | 'right';
+    justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between';
   };
 }
