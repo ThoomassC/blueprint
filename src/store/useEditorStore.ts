@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorElement, ElementType } from "../types/editor";
+import { audioDescription } from "../services/audioDescription";
 
 interface EditorState {
   elements: EditorElement[];
@@ -215,9 +216,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       ],
       selectedId: newId,
     }));
+
+    audioDescription.announceElementAdded(type, x, y);
   },
 
-  addChildToForm: (formId, childElement) =>
+  addChildToForm: (formId, childElement) => {
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -227,9 +230,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
+    audioDescription.announceFormChildAdded(childElement.type);
+  },
 
-  removeChildFromForm: (formId, childId) =>
+  removeChildFromForm: (formId, childId) => {
+    const state = get();
+    const form = state.elements.find((el) => el.id === formId);
+    const child = form?.children?.find((c) => c.id === childId);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -241,9 +250,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
 
-  updateFormChild: (formId, childId, updates) =>
+    if (child) {
+      audioDescription.announceFormChildRemoved(child.type);
+    }
+  },
+
+  updateFormChild: (formId, childId, updates) => {
+    const state = get();
+    const form = state.elements.find((el) => el.id === formId);
+    const child = form?.children?.find((c) => c.id === childId);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -255,27 +273,110 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
 
-  updatePosition: (id, x, y) =>
+    if (child && updates.content !== undefined) {
+      audioDescription.announceFormChildUpdated(child.type, "contenu");
+    }
+    if (child && updates.description !== undefined) {
+      audioDescription.announceFormChildUpdated(child.type, "label");
+    }
+  },
+
+  updatePosition: (id, x, y) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, x, y } : el
       ),
-    })),
-  selectElement: (id) => set({ selectedId: id }),
-  updateElement: (id, updates) =>
+    }));
+
+    if (element) {
+      audioDescription.announceElementMoved(element.type, x, y);
+    }
+  },
+
+  selectElement: (id) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+    set({ selectedId: id });
+    audioDescription.announceElementSelected(element || null);
+  },
+
+  updateElement: (id, updates) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, ...updates } : el
       ),
-    })),
-  removeElement: (id) =>
+    }));
+
+    if (element) {
+      // Determine what changed
+      if (updates.style) {
+        // Check specific style properties
+        if (updates.style.color !== undefined) {
+          audioDescription.announceStyleChanged("couleur", updates.style.color);
+        }
+        if (updates.style.backgroundColor !== undefined) {
+          audioDescription.announceStyleChanged(
+            "fond",
+            updates.style.backgroundColor
+          );
+        }
+        if (updates.style.fontFamily !== undefined) {
+          audioDescription.announceStyleChanged(
+            "police",
+            updates.style.fontFamily
+          );
+        }
+        if (updates.style.fontSize !== undefined) {
+          audioDescription.announceStyleChanged(
+            "taille",
+            `${updates.style.fontSize}px`
+          );
+        }
+      }
+      if (updates.content !== undefined) {
+        const contentStr =
+          typeof updates.content === "string"
+            ? updates.content
+            : String(updates.content);
+        audioDescription.announceContentChanged(element.type, contentStr);
+      }
+      if (updates.description !== undefined) {
+        audioDescription.announceAttributeChanged(
+          "description",
+          String(updates.description)
+        );
+      }
+    }
+  },
+
+  removeElement: (id) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.filter((el) => el.id !== id),
       selectedId: null,
-    })),
-  togglePreviewMode: () =>
-    set((state) => ({ isPreviewMode: !state.isPreviewMode, selectedId: null })),
+    }));
+
+    if (element) {
+      audioDescription.announceElementRemoved(element.type);
+    }
+  },
+
+  togglePreviewMode: () => {
+    const state = get();
+    const newMode = !state.isPreviewMode;
+    set({ isPreviewMode: newMode, selectedId: null });
+    audioDescription.announceModeChanged(newMode);
+  },
+
   getJSON: () => JSON.stringify(get().elements, null, 2),
 }));
