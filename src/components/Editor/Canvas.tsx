@@ -8,11 +8,14 @@ export const Canvas = () => {
   const selectElement = useEditorStore((state) => state.selectElement);
   const selectedId = useEditorStore((state) => state.selectedId);
 
-  // 1. Gestion de la couleur
-  const [backgroundColor, setBackgroundColor] = useState('#ffffff');
+  // --- CHANGEMENT ICI : On connecte la couleur au Store ---
+  // Au lieu de useState, on récupère la valeur et la fonction depuis le store
+  const backgroundColor = useEditorStore((state) => state.canvasBackgroundColor);
+  const setBackgroundColor = useEditorStore((state) => state.setCanvasBackgroundColor);
 
-  // 2. Gestion de la palette (Position + Visibilité)
-  const [showPalette, setShowPalette] = useState(false); // Caché par défaut
+  // --- Gestion de la palette (Position + Visibilité) ---
+  // Ces états restent ici car c'est juste de l'interface (UI), pas des données à sauvegarder
+  const [showPalette, setShowPalette] = useState(false);
   const [palettePosition, setPalettePosition] = useState({ x: 820, y: 50 });
   const [isDraggingPalette, setIsDraggingPalette] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -23,20 +26,18 @@ export const Canvas = () => {
 
   // Gestion du clic sur le fond
   const handleBackgroundClick = () => {
-    // Si on clique sur le fond, on désélectionne les éléments
     selectElement(null);
-    // Et on affiche la palette de couleur
     setShowPalette(true);
   };
 
-  // Effet : Si on sélectionne un objet (un élément du canvas), on ferme la palette de fond
+  // Fermer la palette si on sélectionne un autre élément
   useEffect(() => {
     if (selectedId) {
       setShowPalette(false);
     }
   }, [selectedId]);
 
-  // --- LOGIQUE DE DÉPLACEMENT DE LA PALETTE (DRAG) ---
+  // --- LOGIQUE DE DÉPLACEMENT DE LA PALETTE ---
   const handleMouseDownPalette = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsDraggingPalette(true);
@@ -67,7 +68,6 @@ export const Canvas = () => {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDraggingPalette]);
-  // ---------------------------------------------------
 
   // Dimensions
   const canvasWidth = 800;
@@ -78,7 +78,7 @@ export const Canvas = () => {
   return (
       <div
           className="canvas-container"
-          onClick={() => selectElement(null)} // Clic dans la zone grise (hors feuille) = désélection simple
+          onClick={() => selectElement(null)}
           style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}
       >
 
@@ -87,12 +87,12 @@ export const Canvas = () => {
             ref={setNodeRef}
             className={`page-sheet ${isOver ? 'highlight' : ''}`}
             onClick={(e) => {
-              e.stopPropagation(); // Empêche le clic de remonter au container gris
+              e.stopPropagation();
               handleBackgroundClick();
             }}
             style={{
               position: 'relative',
-              backgroundColor: backgroundColor,
+              backgroundColor: backgroundColor, // Utilise maintenant la couleur du store
               width: canvasWidth,
               height: canvasHeight,
               boxShadow: '0 0 10px rgba(0,0,0,0.1)',
@@ -115,7 +115,7 @@ export const Canvas = () => {
           ))}
         </div>
 
-        {/* --- PALETTE DE COULEUR FLOTTANTE (CONDITIONNELLE) --- */}
+        {/* --- PALETTE DE COULEUR FLOTTANTE --- */}
         {showPalette && (
             <div
                 onMouseDown={handleMouseDownPalette}
@@ -127,13 +127,12 @@ export const Canvas = () => {
                   width: '220px',
                   backgroundColor: 'white',
                   borderRadius: '8px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.15)', // Ombre un peu plus marquée
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
                   zIndex: 100,
                   overflow: 'hidden',
                   border: '1px solid #e0e0e0',
                 }}
             >
-              {/* En-tête avec bouton Fermer */}
               <div style={{
                 padding: '8px 12px',
                 background: '#f1f3f5',
@@ -145,8 +144,6 @@ export const Canvas = () => {
                 userSelect: 'none'
               }}>
                 <span style={{ fontSize: '13px', fontWeight: '600', color: '#444' }}>Arrière-plan</span>
-
-                {/* Bouton Fermer (X) */}
                 <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -161,13 +158,12 @@ export const Canvas = () => {
                       padding: '0 4px',
                       lineHeight: 1
                     }}
-                    onMouseDown={(e) => e.stopPropagation()} // Important: ne pas déclencher le drag
+                    onMouseDown={(e) => e.stopPropagation()}
                 >
                   &times;
                 </button>
               </div>
 
-              {/* Corps de la palette */}
               <div style={{ padding: '15px' }} onMouseDown={(e) => e.stopPropagation()}>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '12px', color: '#666' }}>
                   Couleur de remplissage
@@ -184,8 +180,8 @@ export const Canvas = () => {
                   }}>
                     <input
                         type="color"
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        value={backgroundColor} // Lié au store
+                        onChange={(e) => setBackgroundColor(e.target.value)} // Met à jour le store
                         style={{
                           position: 'absolute',
                           top: '-50%', left: '-50%',
