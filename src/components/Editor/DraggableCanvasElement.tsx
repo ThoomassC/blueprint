@@ -7,6 +7,92 @@ interface Props {
   element: EditorElement;
 }
 
+// Configuration des fonctionnalités par type de composant
+const TOOLBAR_CONFIG: Record<string, {
+  showContent: boolean;
+  showStyle: boolean;
+  showColors: boolean;
+  showFont: boolean;
+  showTechConfig: boolean;
+  customFields?: string[];
+}> = {
+  text: {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  heading: {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  button: {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  input: {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  textarea: {
+    showContent: true,
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+  },
+  image: {
+    showContent: false, // On utilise un champ URL personnalisé
+    showStyle: false,
+    showColors: false,
+    showFont: false,
+    showTechConfig: true,
+    customFields: ['url'],
+  },
+  video: {
+    showContent: false, // On utilise un champ URL personnalisé
+    showStyle: false,
+    showColors: false,
+    showFont: false,
+    showTechConfig: true,
+    customFields: ['url'],
+  },
+  card: {
+    showContent: false, // Champs personnalisés
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+    customFields: ['card'],
+  },
+  select: {
+    showContent: false, // Gestion des options
+    showStyle: true,
+    showColors: true,
+    showFont: true,
+    showTechConfig: true,
+    customFields: ['options'],
+  },
+  carousel: {
+    showContent: false, // Gestion des slides
+    showStyle: true,
+    showColors: true,
+    showFont: false,
+    showTechConfig: true,
+    customFields: ['slides'],
+  },
+};
+
 export const DraggableCanvasElement = ({ element }: Props) => {
   const selectElement = useEditorStore((state) => state.selectElement);
   const selectedId = useEditorStore((state) => state.selectedId);
@@ -16,11 +102,11 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const isSelected = !isPreviewMode && selectedId === element.id;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: element.id,
-      data: { type: element.type, isCanvasElement: true, id: element.id },
-      disabled: isPreviewMode,
-    });
+      useDraggable({
+        id: element.id,
+        data: { type: element.type, isCanvasElement: true, id: element.id },
+        disabled: isPreviewMode,
+      });
 
   const style: React.CSSProperties = {
     position: 'absolute',
@@ -31,12 +117,14 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     outline: isSelected ? '2px solid #3498db' : 'none',
   };
 
+  const config = TOOLBAR_CONFIG[element.type] || TOOLBAR_CONFIG.text;
+
   const updateStyle = (key: string, value: string) =>
-    updateElement(element.id, { style: { ...element.style, [key]: value } });
+      updateElement(element.id, { style: { ...element.style, [key]: value } });
 
   const updateCurrentSlide = (
-    key: 'title' | 'description' | 'imageUrl',
-    value: string
+      key: 'title' | 'description' | 'imageUrl',
+      value: string
   ) => {
     const currentIndex = parseInt(element.content) || 0;
     const newSlides = [...(element.slides || [])];
@@ -46,116 +134,117 @@ export const DraggableCanvasElement = ({ element }: Props) => {
     }
   };
 
-  const renderToolbar = () => {
+  const renderCustomFields = () => {
     const currentIndex = parseInt(element.content) || 0;
-    return (
-      <div
-        className="element-toolbar"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <div className="toolbar-content">
-          <div className="toolbar-section">
-            {element.type === 'carousel' && (
-              <div
-                style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}
-              >
-                <label style={{ fontSize: '9px', color: '#aaa' }}>
-                  SLIDE {currentIndex + 1}
-                </label>
-                <input
-                  type="text"
-                  placeholder="Titre"
-                  className="toolbar-input"
-                  value={element.slides?.[currentIndex]?.title || ''}
-                  onChange={(e) => updateCurrentSlide('title', e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="URL Image"
-                  className="toolbar-input"
-                  value={element.slides?.[currentIndex]?.imageUrl || ''}
-                  onChange={(e) =>
-                    updateCurrentSlide('imageUrl', e.target.value)
-                  }
-                />
-                <textarea
-                  placeholder="Desc"
-                  className="toolbar-textarea"
-                  value={element.slides?.[currentIndex]?.description || ''}
-                  onChange={(e) =>
-                    updateCurrentSlide('description', e.target.value)
-                  }
-                />
-                <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-                  <button
-                    className="btn-add-option"
-                    onClick={() =>
+
+    if (config.customFields?.includes('slides')) {
+      return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <label style={{ fontSize: '9px', color: '#aaa' }}>
+              SLIDE {currentIndex + 1}
+            </label>
+            <input
+                type="text"
+                placeholder="Titre"
+                className="toolbar-input"
+                value={element.slides?.[currentIndex]?.title || ''}
+                onChange={(e) => updateCurrentSlide('title', e.target.value)}
+            />
+            <input
+                type="text"
+                placeholder="URL Image"
+                className="toolbar-input"
+                value={element.slides?.[currentIndex]?.imageUrl || ''}
+                onChange={(e) => updateCurrentSlide('imageUrl', e.target.value)}
+            />
+            <textarea
+                placeholder="Description"
+                className="toolbar-textarea"
+                value={element.slides?.[currentIndex]?.description || ''}
+                onChange={(e) => updateCurrentSlide('description', e.target.value)}
+            />
+            <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+              <button
+                  className="btn-add-option"
+                  onClick={() =>
                       updateElement(element.id, {
                         slides: [
                           ...(element.slides || []),
                           { title: 'New', description: '', imageUrl: '' },
                         ],
                       })
-                    }
-                  >
-                    + Slide
-                  </button>
-                  <button
-                    className="btn-mini-delete"
-                    onClick={() =>
+                  }
+              >
+                + Slide
+              </button>
+              <button
+                  className="btn-mini-delete"
+                  onClick={() =>
                       updateElement(element.id, {
-                        slides: element.slides?.filter(
-                          (_, i) => i !== currentIndex
-                        ),
+                        slides: element.slides?.filter((_, i) => i !== currentIndex),
                         content: '0',
                       })
-                    }
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {['image', 'video'].includes(element.type) && (
-              <>
-                <label style={{ fontSize: '9px', color: '#aaa' }}>URL</label>
-                <input
-                  className="toolbar-input"
-                  value={element.content}
-                  onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
                   }
-                />
-              </>
-            )}
-
-            {element.type === 'card' && (
-              <>
-                <input
-                  className="toolbar-input"
-                  value={element.content}
-                  onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                  }
-                />
-                <textarea
-                  className="toolbar-textarea"
-                  value={element.description}
-                  onChange={(e) =>
-                    updateElement(element.id, { description: e.target.value })
-                  }
-                />
-              </>
-            )}
-
-            {element.type === 'select' && (
-              <div
-                style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}
               >
-                {element.options?.map((opt, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '5px' }}>
-                    <input
+                🗑️
+              </button>
+            </div>
+          </div>
+      );
+    }
+
+    if (config.customFields?.includes('url')) {
+      return (
+          <>
+            <label style={{ fontSize: '9px', color: '#aaa' }}>
+              URL {element.type === 'image' ? 'Image' : 'Vidéo'}
+            </label>
+            <input
+                className="toolbar-input"
+                placeholder={`https://example.com/${element.type}.${element.type === 'image' ? 'jpg' : 'mp4'}`}
+                value={element.content}
+                onChange={(e) =>
+                    updateElement(element.id, { content: e.target.value })
+                }
+            />
+          </>
+      );
+    }
+
+    if (config.customFields?.includes('card')) {
+      return (
+          <>
+            <label style={{ fontSize: '9px', color: '#aaa' }}>Titre</label>
+            <input
+                className="toolbar-input"
+                placeholder="Titre de la carte"
+                value={element.content}
+                onChange={(e) =>
+                    updateElement(element.id, { content: e.target.value })
+                }
+            />
+            <label style={{ fontSize: '9px', color: '#aaa', marginTop: '5px' }}>
+              Description
+            </label>
+            <textarea
+                className="toolbar-textarea"
+                placeholder="Description de la carte"
+                value={element.description}
+                onChange={(e) =>
+                    updateElement(element.id, { description: e.target.value })
+                }
+            />
+          </>
+      );
+    }
+
+    if (config.customFields?.includes('options')) {
+      return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <label style={{ fontSize: '9px', color: '#aaa' }}>Options</label>
+            {element.options?.map((opt, i) => (
+                <div key={i} style={{ display: 'flex', gap: '5px' }}>
+                  <input
                       value={opt}
                       className="toolbar-input-small"
                       onChange={(e) => {
@@ -163,173 +252,243 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                         n[i] = e.target.value;
                         updateElement(element.id, { options: n });
                       }}
-                    />
-                    <button
+                  />
+                  <button
                       className="btn-mini-delete"
                       onClick={() =>
-                        updateElement(element.id, {
-                          options: element.options?.filter(
-                            (_, idx) => idx !== i
-                          ),
-                        })
+                          updateElement(element.id, {
+                            options: element.options?.filter((_, idx) => idx !== i),
+                          })
                       }
-                    >
-                      x
-                    </button>
-                  </div>
-                ))}
-                <button
-                  className="btn-add-option"
-                  onClick={() =>
+                  >
+                    x
+                  </button>
+                </div>
+            ))}
+            <button
+                className="btn-add-option"
+                onClick={() =>
                     updateElement(element.id, {
                       options: [
                         ...(element.options || []),
-                        `Opt ${element.options?.length}`,
+                        `Option ${(element.options?.length || 0) + 1}`,
                       ],
                     })
-                  }
-                >
-                  + Option
-                </button>
-              </div>
-            )}
-
-            {!['select', 'card', 'image', 'video', 'carousel'].includes(
-              element.type
-            ) && (
-              <input
-                className="toolbar-input"
-                value={element.content}
-                onChange={(e) =>
-                  updateElement(element.id, { content: e.target.value })
                 }
-              />
-            )}
-          </div>
-
-          <div className="toolbar-section">
-            <label
-              style={{ fontSize: '10px', fontWeight: 'bold', color: '#888' }}
             >
-              🎨 STYLE
-            </label>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '5px' }}>
-              <input
-                type="color"
-                value={element.style?.backgroundColor || '#ffffff'}
-                onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                style={{ width: '20px', height: '20px', border: 'none' }}
-              />
-              <input
-                type="color"
-                value={element.style?.color || '#000000'}
-                onChange={(e) => updateStyle('color', e.target.value)}
-                style={{ width: '20px', height: '20px', border: 'none' }}
-              />
-            </div>
-            <select
-              className="toolbar-input"
-              value={element.style?.fontFamily || 'Arial'}
-              onChange={(e) => updateStyle('fontFamily', e.target.value)}
-            >
-              <option value="Arial">Arial</option>
-              <option value="Courier New">Courier</option>
-              <option value="Times New Roman">Times</option>
-              <option value="Impact">Impact</option>
-            </select>
-          </div>
-
-          <div className="toolbar-section">
-            <label
-              style={{ fontSize: '10px', fontWeight: 'bold', color: '#888' }}
-            >
-              ⚙️ CONFIG TECH
-            </label>
-
-            <div style={{ marginBottom: '5px' }}>
-              <label
-                style={{
-                  fontSize: '9px',
-                  color: '#aaa',
-                  display: 'block',
-                  marginBottom: '2px',
-                }}
-              >
-                ID Unique (JS)
-              </label>
-              <input
-                type="text"
-                className="toolbar-input"
-                placeholder="ex: mon-bouton-1"
-                value={element.attributes.htmlId || ''}
-                onChange={(e) =>
-                  updateElement(element.id, {
-                    attributes: {
-                      ...element.attributes,
-                      htmlId: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-
-            {/* CLASSES CSS */}
-            <div>
-              <label
-                style={{
-                  fontSize: '9px',
-                  color: '#aaa',
-                  display: 'block',
-                  marginBottom: '2px',
-                }}
-              >
-                Classes CSS
-              </label>
-              <input
-                type="text"
-                className="toolbar-input"
-                placeholder="ex: btn-lg shadow-md"
-                value={element.attributes.className || ''}
-                onChange={(e) =>
-                  updateElement(element.id, {
-                    attributes: {
-                      ...element.attributes,
-                      className: e.target.value,
-                    },
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="toolbar-actions">
-            <button
-              onClick={() => removeElement(element.id)}
-              className="toolbar-delete-btn"
-            >
-              🗑️
+              + Option
             </button>
           </div>
+      );
+    }
+
+    return null;
+  };
+
+  const renderToolbar = () => {
+    return (
+        <div
+            className="element-toolbar"
+            onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="toolbar-content">
+            {/* Section Contenu */}
+            {(config.showContent || config.customFields) && (
+                <div className="toolbar-section">
+                  <label
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        color: '#888',
+                        marginBottom: '5px',
+                        display: 'block',
+                      }}
+                  >
+                    📝 CONTENU
+                  </label>
+
+                  {config.customFields ? (
+                      renderCustomFields()
+                  ) : (
+                      <input
+                          className="toolbar-input"
+                          placeholder="Contenu..."
+                          value={element.content}
+                          onChange={(e) =>
+                              updateElement(element.id, { content: e.target.value })
+                          }
+                      />
+                  )}
+                </div>
+            )}
+
+            {/* Section Style */}
+            {config.showStyle && (
+                <div className="toolbar-section">
+                  <label
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        color: '#888',
+                        marginBottom: '5px',
+                        display: 'block',
+                      }}
+                  >
+                    🎨 STYLE
+                  </label>
+
+                  {config.showColors && (
+                      <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
+                        <div>
+                          <label style={{ fontSize: '8px', color: '#aaa', display: 'block' }}>
+                            Fond
+                          </label>
+                          <input
+                              type="color"
+                              value={element.style?.backgroundColor || '#ffffff'}
+                              onChange={(e) =>
+                                  updateStyle('backgroundColor', e.target.value)
+                              }
+                              style={{ width: '30px', height: '30px', border: 'none', cursor: 'pointer' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '8px', color: '#aaa', display: 'block' }}>
+                            Texte
+                          </label>
+                          <input
+                              type="color"
+                              value={element.style?.color || '#000000'}
+                              onChange={(e) => updateStyle('color', e.target.value)}
+                              style={{ width: '30px', height: '30px', border: 'none', cursor: 'pointer' }}
+                          />
+                        </div>
+                      </div>
+                  )}
+
+                  {config.showFont && (
+                      <>
+                        <label style={{ fontSize: '9px', color: '#aaa', display: 'block', marginBottom: '2px' }}>
+                          Police
+                        </label>
+                        <select
+                            className="toolbar-input"
+                            value={element.style?.fontFamily || 'Arial'}
+                            onChange={(e) => updateStyle('fontFamily', e.target.value)}
+                        >
+                          <option value="Arial">Arial</option>
+                          <option value="Courier New">Courier</option>
+                          <option value="Times New Roman">Times</option>
+                          <option value="Impact">Impact</option>
+                          <option value="Georgia">Georgia</option>
+                          <option value="Verdana">Verdana</option>
+                        </select>
+                      </>
+                  )}
+                </div>
+            )}
+
+            {/* Section Config Technique */}
+            {config.showTechConfig && (
+                <div className="toolbar-section">
+                  <label
+                      style={{
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        color: '#888',
+                        marginBottom: '5px',
+                        display: 'block',
+                      }}
+                  >
+                    ⚙️ CONFIG TECH
+                  </label>
+
+                  <div style={{ marginBottom: '5px' }}>
+                    <label
+                        style={{
+                          fontSize: '9px',
+                          color: '#aaa',
+                          display: 'block',
+                          marginBottom: '2px',
+                        }}
+                    >
+                      ID Unique (JS)
+                    </label>
+                    <input
+                        type="text"
+                        className="toolbar-input"
+                        placeholder="ex: mon-bouton-1"
+                        value={element.attributes.htmlId || ''}
+                        onChange={(e) =>
+                            updateElement(element.id, {
+                              attributes: {
+                                ...element.attributes,
+                                htmlId: e.target.value,
+                              },
+                            })
+                        }
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                        style={{
+                          fontSize: '9px',
+                          color: '#aaa',
+                          display: 'block',
+                          marginBottom: '2px',
+                        }}
+                    >
+                      Classes CSS
+                    </label>
+                    <input
+                        type="text"
+                        className="toolbar-input"
+                        placeholder="ex: btn-lg shadow-md"
+                        value={element.attributes.className || ''}
+                        onChange={(e) =>
+                            updateElement(element.id, {
+                              attributes: {
+                                ...element.attributes,
+                                className: e.target.value,
+                              },
+                            })
+                        }
+                    />
+                  </div>
+                </div>
+            )}
+
+            {/* Actions */}
+            <div className="toolbar-actions">
+              <button
+                  onClick={() => removeElement(element.id)}
+                  className="toolbar-delete-btn"
+                  title="Supprimer l'élément"
+              >
+                🗑️ Supprimer
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
     );
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...(!isPreviewMode ? listeners : {})}
-      {...attributes}
-      onClick={(e) => {
-        if (!isPreviewMode) {
-          e.stopPropagation();
-          selectElement(element.id);
-        }
-      }}
-    >
-      {isSelected && !isDragging && renderToolbar()}
-      <RenderNode element={element} />
-    </div>
+      <div
+          ref={setNodeRef}
+          style={style}
+          {...(!isPreviewMode ? listeners : {})}
+          {...attributes}
+          onClick={(e) => {
+            if (!isPreviewMode) {
+              e.stopPropagation();
+              selectElement(element.id);
+            }
+          }}
+      >
+        {isSelected && !isDragging && renderToolbar()}
+        <RenderNode element={element} />
+      </div>
   );
 };
