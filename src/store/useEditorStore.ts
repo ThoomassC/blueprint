@@ -6,12 +6,13 @@ import { audioDescription } from "../services/audioDescription";
 interface EditorState {
   elements: EditorElement[];
   selectedId: string | null;
+  selectedChildId: string | null;
   isPreviewMode: boolean;
   canvasDimensions: { width: number; height: number };
-  canvasBackgroundColor: string; // ✅ Ajouté
+  canvasBackgroundColor: string;
 
   // Actions
-  setCanvasBackgroundColor: (color: string) => void; // ✅ Ajouté
+  setCanvasBackgroundColor: (color: string) => void;
   centerElementOnCanvas: (id: string) => void;
   addElement: (type: ElementType, x: number, y: number) => void;
   addChildToForm: (formId: string, childElement: EditorElement) => void;
@@ -23,6 +24,7 @@ interface EditorState {
   ) => void;
   updatePosition: (id: string, x: number, y: number) => void;
   selectElement: (id: string | null) => void;
+  selectFormChild: (parentId: string, childId: string | null) => void;
   removeElement: (id: string) => void;
   updateElement: (id: string, updates: Partial<EditorElement>) => void;
   togglePreviewMode: () => void;
@@ -75,9 +77,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     },
   ],
   selectedId: null,
+  selectedChildId: null,
   isPreviewMode: false,
   canvasDimensions: { width: 800, height: 1000 },
-  canvasBackgroundColor: "#ffffff", // Blanc par défaut
+  canvasBackgroundColor: "#ffffff",
 
   setCanvasBackgroundColor: (color) => set({ canvasBackgroundColor: color }),
 
@@ -111,7 +114,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   addElement: (type, x, y) => {
     const newId = uuidv4();
     let defaultContent = "Texte";
-    // Style de base incluant radius et shadow par défaut
     let defaultStyle: EditorElement["style"] = {
       fontFamily: "Arial",
       color: "#000000",
@@ -144,8 +146,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           padding: "15px",
           display: "flex",
           flexDirection: "column",
-          boxShadow: "0 4px 8px rgba(0,0,0,0.1)", // Ombre par défaut pour les cartes
-          borderRadius: "8px", // Arrondi par défaut pour les cartes
+          boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+          borderRadius: "8px",
         };
         break;
       case "button":
@@ -156,7 +158,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           color: "#ffffff",
           borderRadius: "4px",
           padding: "10px 20px",
-          textAlign: "center",
         };
         break;
       case "header":
@@ -168,8 +169,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           backgroundColor: "#2c3e50",
           color: "#ffffff",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
         };
         break;
       case "footer":
@@ -181,8 +180,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           backgroundColor: "#95a5a6",
           color: "#ffffff",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
         };
         break;
       case "title":
@@ -224,7 +221,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             content: "",
             x: 0,
             y: 0,
-            style: { fontFamily: "Arial" },
+            style: { fontFamily: "Arial", textAlign: "left" },
             attributes: { htmlId: "", className: "" },
           },
         ];
@@ -375,8 +372,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectElement: (id) => {
     const state = get();
     const element = state.elements.find((el) => el.id === id);
-    set({ selectedId: id });
+    set({ selectedId: id, selectedChildId: null });
     audioDescription.announceElementSelected(element || null);
+  },
+
+  selectFormChild: (parentId, childId) => {
+    set({ selectedId: parentId, selectedChildId: childId });
   },
 
   updateElement: (id, updates) => {
