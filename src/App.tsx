@@ -8,6 +8,8 @@ import {
   useSensors,
   PointerSensor,
 } from "@dnd-kit/core";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { Sidebar } from "./components/Editor/Sidebar";
 import { Canvas } from "./components/Editor/Canvas";
 import { useEditorStore } from "./store/useEditorStore";
@@ -27,10 +29,30 @@ function App() {
     null
   );
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   useEffect(() => {
     audioDescription.setEnabled(isAudioEnabled);
   }, [isAudioEnabled]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const exportContainer = target.closest("[data-export-container]");
+
+      if (showExportMenu && !exportContainer) {
+        setShowExportMenu(false);
+      }
+    };
+
+    if (showExportMenu) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [showExportMenu]);
 
   const toggleAudio = () => {
     setIsAudioEnabled(!isAudioEnabled);
@@ -135,6 +157,122 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const handleScreenshotExport = async (format: "png" | "jpg" | "pdf") => {
+    setShowExportMenu(false);
+
+    // Demander le nom du fichier avant de basculer en mode aperçu
+    const fileNameInput = window.prompt(
+      `Entrez le nom du fichier ${format.toUpperCase()} :`,
+      `blueprint-${new Date().toISOString().slice(0, 10)}`
+    );
+
+    if (fileNameInput === null) return;
+
+    let fileName = fileNameInput.trim();
+    if (!fileName) fileName = "export-sans-nom";
+
+    // Sauvegarder l'état actuel du mode
+    const wasInPreviewMode = isPreviewMode;
+
+    // Basculer en mode aperçu si nécessaire
+    if (!wasInPreviewMode) {
+      togglePreviewMode();
+      // Attendre que le DOM se mette à jour
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+
+    const canvasElement = document.querySelector(".page-sheet") as HTMLElement;
+    if (!canvasElement) {
+      alert("Impossible de trouver la maquette à exporter");
+      console.error("Élément .page-sheet non trouvé");
+      // Revenir au mode précédent
+      if (!wasInPreviewMode) {
+        togglePreviewMode();
+      }
+      return;
+    }
+
+    try {
+      console.log("Début de la capture d'écran...");
+
+      const screenshot = await html2canvas(canvasElement, {
+        backgroundColor: useEditorStore.getState().canvasBackgroundColor,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: true,
+        width: canvasElement.offsetWidth,
+        height: canvasElement.offsetHeight,
+      });
+
+      console.log("Capture réussie:", screenshot.width, "x", screenshot.height);
+
+      if (format === "pdf") {
+        const imgData = screenshot.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation:
+            screenshot.width > screenshot.height ? "landscape" : "portrait",
+          unit: "px",
+          format: [screenshot.width, screenshot.height],
+        });
+
+        pdf.addImage(imgData, "PNG", 0, 0, screenshot.width, screenshot.height);
+        pdf.save(fileName.endsWith(".pdf") ? fileName : `${fileName}.pdf`);
+        console.log("PDF exporté avec succès");
+      } else {
+        const mimeType = format === "png" ? "image/png" : "image/jpeg";
+        const extension = format;
+        const quality = format === "jpg" ? 0.95 : undefined;
+
+        screenshot.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error("Échec de la création du blob");
+              alert("Erreur lors de la création de l'image");
+              return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = fileName.endsWith(`.${extension}`)
+              ? fileName
+              : `${fileName}.${extension}`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            console.log(`Image ${format.toUpperCase()} exportée avec succès`);
+          },
+          mimeType,
+          quality
+        );
+      }
+
+      // Revenir au mode précédent après un court délai
+      if (!wasInPreviewMode) {
+        setTimeout(() => {
+          togglePreviewMode();
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'export:", error);
+      alert(
+        `Une erreur est survenue lors de l'export: ${
+          error instanceof Error ? error.message : "Erreur inconnue"
+        }`
+      );
+
+      // Revenir au mode précédent en cas d'erreur
+      if (!wasInPreviewMode) {
+        togglePreviewMode();
+      }
+    }
+  };
+
   const getOverlayLabel = (type: ElementType) => {
     switch (type) {
       case "header":
@@ -185,6 +323,111 @@ function App() {
             <button onClick={handleExport} className="btn-export">
               📥 Télécharger JSON
             </button>
+            <div
+              style={{ position: "relative", display: "inline-block" }}
+              data-export-container
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowExportMenu(!showExportMenu);
+                }}
+                className="btn-export"
+                style={{ marginLeft: "10px" }}
+              >
+                📸 Export
+              </button>
+              {showExportMenu && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    right: 0,
+                    marginTop: "5px",
+                    backgroundColor: "white",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                    zIndex: 1000,
+                    minWidth: "150px",
+                  }}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleScreenshotExport("png");
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "10px 15px",
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f5f5f5")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    🖼️ PNG
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleScreenshotExport("jpg");
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "10px 15px",
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f5f5f5")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    🖼️ JPG
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleScreenshotExport("pdf");
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "10px 15px",
+                      border: "none",
+                      background: "transparent",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#f5f5f5")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    📄 PDF
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
