@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const getEmbedUrl = (url: string) => {
-  if (url.includes("youtube.com/watch?v=")) {
-    return url.replace("watch?v=", "embed/");
+  if (url.includes('youtube.com/watch?v=')) {
+    return url.replace('watch?v=', 'embed/');
   }
-  if (url.includes("youtu.be/")) {
-    return url.replace("youtu.be/", "www.youtube.com/embed/");
+  if (url.includes('youtu.be/')) {
+    return url.replace('youtu.be/', 'www.youtube.com/embed/');
   }
   return url;
 };
@@ -21,7 +21,7 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
     (state) => state.removeChildFromForm
   );
   const updateFormChild = useEditorStore((state) => state.updateFormChild);
-  const [emailError, setEmailError] = useState<string>("");
+  const [emailError, setEmailError] = useState<string>('');
 
   const styles: React.CSSProperties = {
     ...element.style,
@@ -557,34 +557,34 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
           {!isPreviewMode && (
             <div
               style={{
-                marginTop: "15px",
-                display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
+                marginTop: '15px',
+                display: 'flex',
+                gap: '8px',
+                flexWrap: 'wrap',
               }}
             >
               <button
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "12px",
-                  border: "1px solid #3498db",
-                  backgroundColor: "white",
-                  color: "#3498db",
-                  borderRadius: "4px",
-                  cursor: "pointer",
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  border: '1px solid #3498db',
+                  backgroundColor: 'white',
+                  color: '#3498db',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   addChildToForm(element.id, {
                     id: uuidv4(),
-                    type: "input-text",
-                    content: "",
-                    description: "Texte",
+                    type: 'input-text',
+                    content: '',
+                    description: 'Texte',
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
-                    attributes: { htmlId: "", className: "" },
+                    style: { fontFamily: 'Arial' },
+                    attributes: { htmlId: '', className: '' },
                   });
                 }}
               >
@@ -593,25 +593,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               <button
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "12px",
-                  border: "1px solid #3498db",
-                  backgroundColor: "white",
-                  color: "#3498db",
-                  borderRadius: "4px",
-                  cursor: "pointer",
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  border: '1px solid #3498db',
+                  backgroundColor: 'white',
+                  color: '#3498db',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   addChildToForm(element.id, {
                     id: uuidv4(),
-                    type: "input-email",
-                    content: "",
-                    description: "Email",
+                    type: 'input-email',
+                    content: '',
+                    description: 'Email',
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
-                    attributes: { htmlId: "", className: "" },
+                    style: { fontFamily: 'Arial' },
+                    attributes: { htmlId: '', className: '' },
                   });
                 }}
               >
@@ -620,25 +620,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               <button
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "12px",
-                  border: "1px solid #3498db",
-                  backgroundColor: "white",
-                  color: "#3498db",
-                  borderRadius: "4px",
-                  cursor: "pointer",
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  border: '1px solid #3498db',
+                  backgroundColor: 'white',
+                  color: '#3498db',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   addChildToForm(element.id, {
                     id: uuidv4(),
-                    type: "input-number",
-                    content: "0",
-                    description: "Nombre",
+                    type: 'input-number',
+                    content: '0',
+                    description: 'Nombre',
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
-                    attributes: { htmlId: "", className: "" },
+                    style: { fontFamily: 'Arial' },
+                    attributes: { htmlId: '', className: '' },
                   });
                 }}
               >
@@ -647,25 +647,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
               <button
                 type="button"
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "12px",
-                  border: "1px solid #3498db",
-                  backgroundColor: "white",
-                  color: "#3498db",
-                  borderRadius: "4px",
-                  cursor: "pointer",
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  border: '1px solid #3498db',
+                  backgroundColor: 'white',
+                  color: '#3498db',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   addChildToForm(element.id, {
                     id: uuidv4(),
-                    type: "calendar",
-                    content: new Date().toISOString().split("T")[0],
-                    description: "Date",
+                    type: 'calendar',
+                    content: new Date().toISOString().split('T')[0],
+                    description: 'Date',
                     x: 0,
                     y: 0,
-                    style: { fontFamily: "Arial" },
-                    attributes: { htmlId: "", className: "" },
+                    style: { fontFamily: 'Arial' },
+                    attributes: { htmlId: '', className: '' },
                   });
                 }}
               >
@@ -678,25 +678,25 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
           <button
             type="submit"
             style={{
-              marginTop: "20px",
-              width: "100%",
-              padding: "12px 20px",
-              backgroundColor: "#3498db",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: isPreviewMode ? "pointer" : "default",
-              transition: "background-color 0.2s",
+              marginTop: '20px',
+              width: '100%',
+              padding: '12px 20px',
+              backgroundColor: '#3498db',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              cursor: isPreviewMode ? 'pointer' : 'default',
+              transition: 'background-color 0.2s',
             }}
             onMouseEnter={(e) => {
               if (isPreviewMode) {
-                e.currentTarget.style.backgroundColor = "#2980b9";
+                e.currentTarget.style.backgroundColor = '#2980b9';
               }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#3498db";
+              e.currentTarget.style.backgroundColor = '#3498db';
             }}
           >
             Envoyer
@@ -704,13 +704,6 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </form>
       );
 
-    default:
-      return (
-        <p className="preview-text" style={styles}>
-          {element.content}
-        </p>
-      );
-  }
     default:
       return (
         <p className="preview-text" style={styles}>

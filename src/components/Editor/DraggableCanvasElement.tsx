@@ -189,7 +189,7 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       setResizePreview({ width: newWidth, height: newHeight });
       updateStyle('width', newWidth);
       updateStyle('height', newHeight);
-      
+
       // Mettre à jour la position uniquement si on redimensionne depuis l'ouest ou le nord
       if (direction.includes('w') || direction.includes('n')) {
         updateElement(element.id, { x: newX, y: newY });
