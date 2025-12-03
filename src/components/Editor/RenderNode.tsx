@@ -636,6 +636,185 @@ export const RenderNode = ({ element }: { element: EditorElement }) => {
         </form>
       );
 
+    case "map": {
+      const markers = element.markers || [];
+      const centerLat = element.coordinates?.lat || 48.8566;
+      const centerLng = element.coordinates?.lng || 2.3522;
+
+      // Calculer le centre et le zoom automatique
+      let mapCenter = { lat: centerLat, lng: centerLng };
+      let zoom = 13;
+
+      if (markers.length > 0) {
+        // Calculer le centre moyen
+        const avgLat =
+          markers.reduce((sum, m) => sum + m.lat, 0) / markers.length;
+        const avgLng =
+          markers.reduce((sum, m) => sum + m.lng, 0) / markers.length;
+        mapCenter = { lat: avgLat, lng: avgLng };
+
+        // Calculer le zoom basé sur la dispersion des marqueurs
+        const lats = markers.map((m) => m.lat);
+        const lngs = markers.map((m) => m.lng);
+        const latDiff = Math.max(...lats) - Math.min(...lats);
+        const lngDiff = Math.max(...lngs) - Math.min(...lngs);
+        const maxDiff = Math.max(latDiff, lngDiff);
+
+        if (maxDiff > 0.5) zoom = 10;
+        else if (maxDiff > 0.1) zoom = 12;
+        else if (maxDiff > 0.05) zoom = 13;
+        else if (maxDiff > 0.01) zoom = 14;
+        else zoom = 15;
+      }
+
+      // Créer le HTML pour la carte avec Leaflet
+      const mapHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          <style>
+            body { margin: 0; padding: 0; }
+            #map { width: 100vw; height: 100vh; }
+          </style>
+        </head>
+        <body>
+          <div id="map"></div>
+          <script>
+            const map = L.map('map').setView([${mapCenter.lat}, ${
+        mapCenter.lng
+      }], ${zoom});
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap contributors',
+              maxZoom: 19
+            }).addTo(map);
+
+            // Créer une icône personnalisée pour chaque marqueur
+            ${markers
+              .map(
+                (marker) => `
+              const icon_${marker.id.replace(
+                /[^a-zA-Z0-9]/g,
+                "_"
+              )} = L.divIcon({
+                className: 'custom-marker',
+                html: \`
+                  <div style="position: relative; display: flex; flex-direction: column; align-items: center;">
+                    <svg width="30" height="40" viewBox="0 0 30 40" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+                      <path d="M15 0C8.373 0 3 5.373 3 12c0 9 12 28 12 28s12-19 12-28c0-6.627-5.373-12-12-12z" fill="${
+                        marker.color || "#FF5252"
+                      }" />
+                      <circle cx="15" cy="12" r="5" fill="white" />
+                    </svg>
+                    <div style="
+                      background-color: ${marker.color || "#FF5252"};
+                      color: white;
+                      padding: 2px 8px;
+                      border-radius: 4px;
+                      font-size: 11px;
+                      font-weight: bold;
+                      white-space: nowrap;
+                      margin-top: -5px;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                    ">${marker.label}</div>
+                  </div>
+                \`,
+                iconSize: [30, 50],
+                iconAnchor: [15, 50],
+                popupAnchor: [0, -50]
+              });
+
+              L.marker([${marker.lat}, ${
+                  marker.lng
+                }], { icon: icon_${marker.id.replace(/[^a-zA-Z0-9]/g, "_")} })
+                .addTo(map)
+                .bindPopup('<b>${marker.label}</b><br>Lat: ${
+                  marker.lat
+                }<br>Lng: ${marker.lng}');
+            `
+              )
+              .join("\n")}
+
+            // Ajuster la vue pour inclure tous les marqueurs
+            ${
+              markers.length > 1
+                ? `
+              const bounds = L.latLngBounds([
+                ${markers
+                  .map((m) => `[${m.lat}, ${m.lng}]`)
+                  .join(",\n                ")}
+              ]);
+              map.fitBounds(bounds, { padding: [50, 50] });
+            `
+                : ""
+            }
+          </script>
+        </body>
+        </html>
+      `;
+
+      return (
+        <div
+          style={{
+            ...styles,
+            border: "2px solid #4CAF50",
+            borderRadius: "8px",
+            overflow: "hidden",
+            minWidth: "300px",
+            minHeight: "200px",
+            position: "relative",
+            backgroundColor: "#f0f0f0",
+          }}
+        >
+          <iframe
+            srcDoc={mapHTML}
+            style={{
+              ...interactionStyle,
+              width: "100%",
+              height: "100%",
+              minHeight: "200px",
+              border: "none",
+            }}
+            title="Carte interactive"
+          />
+
+          {!isPreviewMode && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                left: "10px",
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                padding: "5px 10px",
+                borderRadius: "4px",
+                fontSize: "12px",
+                color: "#333",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                zIndex: 1000,
+              }}
+            >
+              📍 {element.content || "Ma carte"}
+              {markers.length > 0 && (
+                <span
+                  style={{
+                    marginLeft: "5px",
+                    color: "#4CAF50",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ({markers.length} point{markers.length > 1 ? "s" : ""})
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     default:
       return (
         <p className="preview-text" style={styles}>

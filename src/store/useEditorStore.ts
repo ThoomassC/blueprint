@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import type { EditorElement, ElementType } from "../types/editor";
+import type { EditorElement, ElementType, MapMarker } from "../types/editor";
 
 interface EditorState {
   elements: EditorElement[];
@@ -67,6 +67,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     };
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
+    let defaultCoordinates: { lat: number; lng: number } | undefined =
+      undefined;
+    let defaultMarkers: MapMarker[] | undefined = undefined;
 
     switch (type) {
       case "video":
@@ -196,6 +199,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       case "calendar":
         defaultContent = new Date().toISOString().split("T")[0];
         break;
+      case "map":
+        defaultContent = "Ma carte";
+        defaultStyle = {
+          ...defaultStyle,
+          width: "400px",
+          height: "300px",
+        };
+        defaultCoordinates = { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
+        defaultMarkers = [
+          {
+            id: uuidv4(),
+            lat: 48.8566,
+            lng: 2.3522,
+            label: "Paris",
+            color: "#FF5252",
+          },
+        ];
+        break;
     }
 
     set((state) => ({
@@ -207,6 +228,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           content: defaultContent,
           description: defaultDescription,
           options: defaultOptions,
+          coordinates: defaultCoordinates,
+          markers: defaultMarkers,
           x,
           y,
           style: defaultStyle,

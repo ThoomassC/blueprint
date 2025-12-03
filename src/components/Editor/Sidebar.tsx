@@ -22,6 +22,7 @@ export const Sidebar = () => {
         <SidebarItem type="input-email" label="📧" title="Email" />
         <SidebarItem type="input-form" label="📝" title="Formulaire" />
         <SidebarItem type="calendar" label="📅" title="Date" />
+        <SidebarItem type="map" label="🗺️" title="Carte" />
       </div>
     </div>
   );

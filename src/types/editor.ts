@@ -13,12 +13,21 @@ export type ElementType =
   | "input-text"
   | "input-form"
   | "calendar"
-  | "title";
+  | "title"
+  | "map";
 
 export interface Slide {
   title: string;
   description: string;
   imageUrl?: string;
+}
+
+export interface MapMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  color?: string;
 }
 
 export interface EditorElement {
@@ -30,6 +39,8 @@ export interface EditorElement {
   options?: string[];
   description?: string;
   children?: EditorElement[];
+  coordinates?: { lat: number; lng: number };
+  markers?: MapMarker[];
 
   x: number;
   y: number;

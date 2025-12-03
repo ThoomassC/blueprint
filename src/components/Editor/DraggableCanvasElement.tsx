@@ -1,21 +1,24 @@
-import { useDraggable } from '@dnd-kit/core';
-import type { EditorElement } from '../../types/editor';
-import { RenderNode } from './RenderNode';
-import { useEditorStore } from '../../store/useEditorStore';
+import { useDraggable } from "@dnd-kit/core";
+import type { EditorElement } from "../../types/editor";
+import { RenderNode } from "./RenderNode";
+import { useEditorStore } from "../../store/useEditorStore";
 
 interface Props {
   element: EditorElement;
 }
 
 // Configuration des fonctionnalités par type de composant
-const TOOLBAR_CONFIG: Record<string, {
-  showContent: boolean;
-  showStyle: boolean;
-  showColors: boolean;
-  showFont: boolean;
-  showTechConfig: boolean;
-  customFields?: string[];
-}> = {
+const TOOLBAR_CONFIG: Record<
+  string,
+  {
+    showContent: boolean;
+    showStyle: boolean;
+    showColors: boolean;
+    showFont: boolean;
+    showTechConfig: boolean;
+    customFields?: string[];
+  }
+> = {
   text: {
     showContent: true,
     showStyle: true,
@@ -57,7 +60,7 @@ const TOOLBAR_CONFIG: Record<string, {
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   video: {
     showContent: false, // On utilise un champ URL personnalisé
@@ -65,7 +68,7 @@ const TOOLBAR_CONFIG: Record<string, {
     showColors: false,
     showFont: false,
     showTechConfig: true,
-    customFields: ['url'],
+    customFields: ["url"],
   },
   card: {
     showContent: false, // Champs personnalisés
@@ -73,7 +76,7 @@ const TOOLBAR_CONFIG: Record<string, {
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['card'],
+    customFields: ["card"],
   },
   select: {
     showContent: false, // Gestion des options
@@ -81,7 +84,7 @@ const TOOLBAR_CONFIG: Record<string, {
     showColors: true,
     showFont: true,
     showTechConfig: true,
-    customFields: ['options'],
+    customFields: ["options"],
   },
   carousel: {
     showContent: false, // Gestion des slides
@@ -89,7 +92,15 @@ const TOOLBAR_CONFIG: Record<string, {
     showColors: true,
     showFont: false,
     showTechConfig: true,
-    customFields: ['slides'],
+    customFields: ["slides"],
+  },
+  map: {
+    showContent: false, // Champs personnalisés pour la localisation
+    showStyle: true,
+    showColors: false,
+    showFont: false,
+    showTechConfig: true,
+    customFields: ["location"],
   },
 };
 
@@ -102,29 +113,29 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const isSelected = !isPreviewMode && selectedId === element.id;
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-      useDraggable({
-        id: element.id,
-        data: { type: element.type, isCanvasElement: true, id: element.id },
-        disabled: isPreviewMode,
-      });
+    useDraggable({
+      id: element.id,
+      data: { type: element.type, isCanvasElement: true, id: element.id },
+      disabled: isPreviewMode,
+    });
 
   const style: React.CSSProperties = {
-    position: 'absolute',
+    position: "absolute",
     left: element.x + (transform ? transform.x : 0),
     top: element.y + (transform ? transform.y : 0),
-    cursor: isPreviewMode ? 'default' : isDragging ? 'grabbing' : 'grab',
+    cursor: isPreviewMode ? "default" : isDragging ? "grabbing" : "grab",
     zIndex: isDragging ? 1000 : isSelected ? 100 : 1,
-    outline: isSelected ? '2px solid #3498db' : 'none',
+    outline: isSelected ? "2px solid #3498db" : "none",
   };
 
   const config = TOOLBAR_CONFIG[element.type] || TOOLBAR_CONFIG.text;
 
   const updateStyle = (key: string, value: string) =>
-      updateElement(element.id, { style: { ...element.style, [key]: value } });
+    updateElement(element.id, { style: { ...element.style, [key]: value } });
 
   const updateCurrentSlide = (
-      key: 'title' | 'description' | 'imageUrl',
-      value: string
+    key: "title" | "description" | "imageUrl",
+    value: string
   ) => {
     const currentIndex = parseInt(element.content) || 0;
     const newSlides = [...(element.slides || [])];
@@ -137,148 +148,336 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const renderCustomFields = () => {
     const currentIndex = parseInt(element.content) || 0;
 
-    if (config.customFields?.includes('slides')) {
+    if (config.customFields?.includes("slides")) {
       return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '9px', color: '#aaa' }}>
-              SLIDE {currentIndex + 1}
-            </label>
-            <input
-                type="text"
-                placeholder="Titre"
-                className="toolbar-input"
-                value={element.slides?.[currentIndex]?.title || ''}
-                onChange={(e) => updateCurrentSlide('title', e.target.value)}
-            />
-            <input
-                type="text"
-                placeholder="URL Image"
-                className="toolbar-input"
-                value={element.slides?.[currentIndex]?.imageUrl || ''}
-                onChange={(e) => updateCurrentSlide('imageUrl', e.target.value)}
-            />
-            <textarea
-                placeholder="Description"
-                className="toolbar-textarea"
-                value={element.slides?.[currentIndex]?.description || ''}
-                onChange={(e) => updateCurrentSlide('description', e.target.value)}
-            />
-            <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
-              <button
-                  className="btn-add-option"
-                  onClick={() =>
-                      updateElement(element.id, {
-                        slides: [
-                          ...(element.slides || []),
-                          { title: 'New', description: '', imageUrl: '' },
-                        ],
-                      })
-                  }
-              >
-                + Slide
-              </button>
-              <button
-                  className="btn-mini-delete"
-                  onClick={() =>
-                      updateElement(element.id, {
-                        slides: element.slides?.filter((_, i) => i !== currentIndex),
-                        content: '0',
-                      })
-                  }
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-      );
-    }
-
-    if (config.customFields?.includes('url')) {
-      return (
-          <>
-            <label style={{ fontSize: '9px', color: '#aaa' }}>
-              URL {element.type === 'image' ? 'Image' : 'Vidéo'}
-            </label>
-            <input
-                className="toolbar-input"
-                placeholder={`https://example.com/${element.type}.${element.type === 'image' ? 'jpg' : 'mp4'}`}
-                value={element.content}
-                onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                }
-            />
-          </>
-      );
-    }
-
-    if (config.customFields?.includes('card')) {
-      return (
-          <>
-            <label style={{ fontSize: '9px', color: '#aaa' }}>Titre</label>
-            <input
-                className="toolbar-input"
-                placeholder="Titre de la carte"
-                value={element.content}
-                onChange={(e) =>
-                    updateElement(element.id, { content: e.target.value })
-                }
-            />
-            <label style={{ fontSize: '9px', color: '#aaa', marginTop: '5px' }}>
-              Description
-            </label>
-            <textarea
-                className="toolbar-textarea"
-                placeholder="Description de la carte"
-                value={element.description}
-                onChange={(e) =>
-                    updateElement(element.id, { description: e.target.value })
-                }
-            />
-          </>
-      );
-    }
-
-    if (config.customFields?.includes('options')) {
-      return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '9px', color: '#aaa' }}>Options</label>
-            {element.options?.map((opt, i) => (
-                <div key={i} style={{ display: 'flex', gap: '5px' }}>
-                  <input
-                      value={opt}
-                      className="toolbar-input-small"
-                      onChange={(e) => {
-                        const n = [...(element.options || [])];
-                        n[i] = e.target.value;
-                        updateElement(element.id, { options: n });
-                      }}
-                  />
-                  <button
-                      className="btn-mini-delete"
-                      onClick={() =>
-                          updateElement(element.id, {
-                            options: element.options?.filter((_, idx) => idx !== i),
-                          })
-                      }
-                  >
-                    x
-                  </button>
-                </div>
-            ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            SLIDE {currentIndex + 1}
+          </label>
+          <input
+            type="text"
+            placeholder="Titre"
+            className="toolbar-input"
+            value={element.slides?.[currentIndex]?.title || ""}
+            onChange={(e) => updateCurrentSlide("title", e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="URL Image"
+            className="toolbar-input"
+            value={element.slides?.[currentIndex]?.imageUrl || ""}
+            onChange={(e) => updateCurrentSlide("imageUrl", e.target.value)}
+          />
+          <textarea
+            placeholder="Description"
+            className="toolbar-textarea"
+            value={element.slides?.[currentIndex]?.description || ""}
+            onChange={(e) => updateCurrentSlide("description", e.target.value)}
+          />
+          <div style={{ display: "flex", gap: "5px", marginTop: "5px" }}>
             <button
-                className="btn-add-option"
-                onClick={() =>
-                    updateElement(element.id, {
-                      options: [
-                        ...(element.options || []),
-                        `Option ${(element.options?.length || 0) + 1}`,
-                      ],
-                    })
-                }
+              className="btn-add-option"
+              onClick={() =>
+                updateElement(element.id, {
+                  slides: [
+                    ...(element.slides || []),
+                    { title: "New", description: "", imageUrl: "" },
+                  ],
+                })
+              }
             >
-              + Option
+              + Slide
+            </button>
+            <button
+              className="btn-mini-delete"
+              onClick={() =>
+                updateElement(element.id, {
+                  slides: element.slides?.filter((_, i) => i !== currentIndex),
+                  content: "0",
+                })
+              }
+            >
+              🗑️
             </button>
           </div>
+        </div>
+      );
+    }
+
+    if (config.customFields?.includes("url")) {
+      return (
+        <>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            URL {element.type === "image" ? "Image" : "Vidéo"}
+          </label>
+          <input
+            className="toolbar-input"
+            placeholder={`https://example.com/${element.type}.${
+              element.type === "image" ? "jpg" : "mp4"
+            }`}
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
+            }
+          />
+        </>
+      );
+    }
+
+    if (config.customFields?.includes("card")) {
+      return (
+        <>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Titre</label>
+          <input
+            className="toolbar-input"
+            placeholder="Titre de la carte"
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
+            }
+          />
+          <label style={{ fontSize: "9px", color: "#aaa", marginTop: "5px" }}>
+            Description
+          </label>
+          <textarea
+            className="toolbar-textarea"
+            placeholder="Description de la carte"
+            value={element.description}
+            onChange={(e) =>
+              updateElement(element.id, { description: e.target.value })
+            }
+          />
+        </>
+      );
+    }
+
+    if (config.customFields?.includes("options")) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>Options</label>
+          {element.options?.map((opt, i) => (
+            <div key={i} style={{ display: "flex", gap: "5px" }}>
+              <input
+                value={opt}
+                className="toolbar-input-small"
+                onChange={(e) => {
+                  const n = [...(element.options || [])];
+                  n[i] = e.target.value;
+                  updateElement(element.id, { options: n });
+                }}
+              />
+              <button
+                className="btn-mini-delete"
+                onClick={() =>
+                  updateElement(element.id, {
+                    options: element.options?.filter((_, idx) => idx !== i),
+                  })
+                }
+              >
+                x
+              </button>
+            </div>
+          ))}
+          <button
+            className="btn-add-option"
+            onClick={() =>
+              updateElement(element.id, {
+                options: [
+                  ...(element.options || []),
+                  `Option ${(element.options?.length || 0) + 1}`,
+                ],
+              })
+            }
+          >
+            + Option
+          </button>
+        </div>
+      );
+    }
+
+    if (config.customFields?.includes("location")) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+          <label style={{ fontSize: "9px", color: "#aaa" }}>
+            NOM DE LA CARTE
+          </label>
+          <input
+            className="toolbar-input"
+            placeholder="Nom du lieu"
+            value={element.content}
+            onChange={(e) =>
+              updateElement(element.id, { content: e.target.value })
+            }
+          />
+
+          <div
+            style={{
+              marginTop: "10px",
+              borderTop: "1px solid #ddd",
+              paddingTop: "10px",
+            }}
+          >
+            <label style={{ fontSize: "9px", color: "#aaa" }}>
+              POINTS SUR LA CARTE
+            </label>
+            {(element.markers || []).map((marker, i) => (
+              <div
+                key={marker.id}
+                style={{
+                  marginTop: "5px",
+                  padding: "8px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "4px",
+                  border: "1px solid #e0e0e0",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "5px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "8px",
+                      color: "#666",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    POINT {i + 1}
+                  </label>
+                  <button
+                    className="btn-mini-delete"
+                    onClick={() =>
+                      updateElement(element.id, {
+                        markers: element.markers?.filter(
+                          (m) => m.id !== marker.id
+                        ),
+                      })
+                    }
+                  >
+                    🗑️
+                  </button>
+                </div>
+                <input
+                  className="toolbar-input"
+                  placeholder="Nom du point"
+                  value={marker.label}
+                  style={{ marginBottom: "3px", fontSize: "11px" }}
+                  onChange={(e) => {
+                    const newMarkers = [...(element.markers || [])];
+                    newMarkers[i] = { ...marker, label: e.target.value };
+                    updateElement(element.id, { markers: newMarkers });
+                  }}
+                />
+                <div
+                  style={{ display: "flex", gap: "3px", marginBottom: "3px" }}
+                >
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lat"
+                    value={marker.lat}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lat: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <input
+                    type="number"
+                    step="0.0001"
+                    className="toolbar-input-small"
+                    placeholder="Lng"
+                    value={marker.lng}
+                    style={{ fontSize: "10px" }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        lng: parseFloat(e.target.value) || 0,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                </div>
+                <div
+                  style={{ display: "flex", gap: "3px", alignItems: "center" }}
+                >
+                  <label style={{ fontSize: "8px", color: "#666" }}>
+                    Couleur:
+                  </label>
+                  <input
+                    type="color"
+                    value={marker.color || "#FF5252"}
+                    style={{
+                      width: "40px",
+                      height: "25px",
+                      border: "1px solid #ccc",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                    }}
+                    onChange={(e) => {
+                      const newMarkers = [...(element.markers || [])];
+                      newMarkers[i] = {
+                        ...marker,
+                        color: e.target.value,
+                      };
+                      updateElement(element.id, { markers: newMarkers });
+                    }}
+                  />
+                  <div
+                    style={{
+                      flex: 1,
+                      fontSize: "9px",
+                      color: "#999",
+                      textAlign: "right",
+                    }}
+                  >
+                    {marker.color || "#FF5252"}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              className="btn-add-option"
+              style={{ marginTop: "5px", width: "100%" }}
+              onClick={() => {
+                // Couleurs prédéfinies pour varier automatiquement
+                const colors = [
+                  "#FF5252",
+                  "#4CAF50",
+                  "#2196F3",
+                  "#FFC107",
+                  "#9C27B0",
+                  "#FF9800",
+                ];
+                const colorIndex =
+                  (element.markers?.length || 0) % colors.length;
+
+                const newMarker = {
+                  id: `marker-${Date.now()}`,
+                  lat: element.coordinates?.lat || 48.8566,
+                  lng: element.coordinates?.lng || 2.3522,
+                  label: `Point ${(element.markers?.length || 0) + 1}`,
+                  color: colors[colorIndex],
+                };
+                updateElement(element.id, {
+                  markers: [...(element.markers || []), newMarker],
+                });
+              }}
+            >
+              + Ajouter un point
+            </button>
+          </div>
+        </div>
       );
     }
 
@@ -287,208 +486,296 @@ export const DraggableCanvasElement = ({ element }: Props) => {
 
   const renderToolbar = () => {
     return (
-        <div
-            className="element-toolbar"
-            onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="toolbar-content">
-            {/* Section Contenu */}
-            {(config.showContent || config.customFields) && (
-                <div className="toolbar-section">
-                  <label
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        color: '#888',
-                        marginBottom: '5px',
-                        display: 'block',
-                      }}
-                  >
-                    📝 CONTENU
-                  </label>
+      <div
+        className="element-toolbar"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div className="toolbar-content">
+          {/* Section Contenu */}
+          {(config.showContent || config.customFields) && (
+            <div className="toolbar-section">
+              <label
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
+                }}
+              >
+                📝 CONTENU
+              </label>
 
-                  {config.customFields ? (
-                      renderCustomFields()
-                  ) : (
-                      <input
-                          className="toolbar-input"
-                          placeholder="Contenu..."
-                          value={element.content}
-                          onChange={(e) =>
-                              updateElement(element.id, { content: e.target.value })
-                          }
-                      />
-                  )}
-                </div>
-            )}
+              {config.customFields ? (
+                renderCustomFields()
+              ) : (
+                <input
+                  className="toolbar-input"
+                  placeholder="Contenu..."
+                  value={element.content}
+                  onChange={(e) =>
+                    updateElement(element.id, { content: e.target.value })
+                  }
+                />
+              )}
+            </div>
+          )}
 
-            {/* Section Style */}
-            {config.showStyle && (
-                <div className="toolbar-section">
-                  <label
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        color: '#888',
-                        marginBottom: '5px',
-                        display: 'block',
-                      }}
-                  >
-                    🎨 STYLE
-                  </label>
+          {/* Section Style */}
+          {config.showStyle && (
+            <div className="toolbar-section">
+              <label
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
+                }}
+              >
+                🎨 STYLE
+              </label>
 
-                  {config.showColors && (
-                      <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                        <div>
-                          <label style={{ fontSize: '8px', color: '#aaa', display: 'block' }}>
-                            Fond
-                          </label>
-                          <input
-                              type="color"
-                              value={element.style?.backgroundColor || '#ffffff'}
-                              onChange={(e) =>
-                                  updateStyle('backgroundColor', e.target.value)
-                              }
-                              style={{ width: '30px', height: '30px', border: 'none', cursor: 'pointer' }}
-                          />
-                        </div>
-                        <div>
-                          <label style={{ fontSize: '8px', color: '#aaa', display: 'block' }}>
-                            Texte
-                          </label>
-                          <input
-                              type="color"
-                              value={element.style?.color || '#000000'}
-                              onChange={(e) => updateStyle('color', e.target.value)}
-                              style={{ width: '30px', height: '30px', border: 'none', cursor: 'pointer' }}
-                          />
-                        </div>
-                      </div>
-                  )}
-
-                  {config.showFont && (
-                      <>
-                        <label style={{ fontSize: '9px', color: '#aaa', display: 'block', marginBottom: '2px' }}>
-                          Police
-                        </label>
-                        <select
-                            className="toolbar-input"
-                            value={element.style?.fontFamily || 'Arial'}
-                            onChange={(e) => updateStyle('fontFamily', e.target.value)}
-                        >
-                          <option value="Arial">Arial</option>
-                          <option value="Courier New">Courier</option>
-                          <option value="Times New Roman">Times</option>
-                          <option value="Impact">Impact</option>
-                          <option value="Georgia">Georgia</option>
-                          <option value="Verdana">Verdana</option>
-                        </select>
-                      </>
-                  )}
-                </div>
-            )}
-
-            {/* Section Config Technique */}
-            {config.showTechConfig && (
-                <div className="toolbar-section">
-                  <label
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        color: '#888',
-                        marginBottom: '5px',
-                        display: 'block',
-                      }}
-                  >
-                    ⚙️ CONFIG TECH
-                  </label>
-
-                  <div style={{ marginBottom: '5px' }}>
-                    <label
-                        style={{
-                          fontSize: '9px',
-                          color: '#aaa',
-                          display: 'block',
-                          marginBottom: '2px',
-                        }}
-                    >
-                      ID Unique (JS)
-                    </label>
-                    <input
-                        type="text"
-                        className="toolbar-input"
-                        placeholder="ex: mon-bouton-1"
-                        value={element.attributes.htmlId || ''}
-                        onChange={(e) =>
-                            updateElement(element.id, {
-                              attributes: {
-                                ...element.attributes,
-                                htmlId: e.target.value,
-                              },
-                            })
-                        }
-                    />
-                  </div>
-
+              {config.showColors && (
+                <div
+                  style={{ display: "flex", gap: "10px", marginBottom: "8px" }}
+                >
                   <div>
                     <label
-                        style={{
-                          fontSize: '9px',
-                          color: '#aaa',
-                          display: 'block',
-                          marginBottom: '2px',
-                        }}
+                      style={{
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
+                      }}
                     >
-                      Classes CSS
+                      Fond
                     </label>
                     <input
-                        type="text"
-                        className="toolbar-input"
-                        placeholder="ex: btn-lg shadow-md"
-                        value={element.attributes.className || ''}
-                        onChange={(e) =>
-                            updateElement(element.id, {
-                              attributes: {
-                                ...element.attributes,
-                                className: e.target.value,
-                              },
-                            })
-                        }
+                      type="color"
+                      value={element.style?.backgroundColor || "#ffffff"}
+                      onChange={(e) =>
+                        updateStyle("backgroundColor", e.target.value)
+                      }
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style={{
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
+                      }}
+                    >
+                      Texte
+                    </label>
+                    <input
+                      type="color"
+                      value={element.style?.color || "#000000"}
+                      onChange={(e) => updateStyle("color", e.target.value)}
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        border: "none",
+                        cursor: "pointer",
+                      }}
                     />
                   </div>
                 </div>
-            )}
+              )}
 
-            {/* Actions */}
-            <div className="toolbar-actions">
-              <button
-                  onClick={() => removeElement(element.id)}
-                  className="toolbar-delete-btn"
-                  title="Supprimer l'élément"
-              >
-                🗑️ Supprimer
-              </button>
+              {/* Dimensions */}
+              <div style={{ marginBottom: "8px" }}>
+                <div
+                  style={{ display: "flex", gap: "5px", marginBottom: "5px" }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <label
+                      style={{
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Largeur
+                    </label>
+                    <input
+                      type="text"
+                      className="toolbar-input"
+                      placeholder="auto"
+                      value={element.style?.width || ""}
+                      onChange={(e) => updateStyle("width", e.target.value)}
+                      style={{ fontSize: "11px" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label
+                      style={{
+                        fontSize: "8px",
+                        color: "#aaa",
+                        display: "block",
+                        marginBottom: "2px",
+                      }}
+                    >
+                      Hauteur
+                    </label>
+                    <input
+                      type="text"
+                      className="toolbar-input"
+                      placeholder="auto"
+                      value={element.style?.height || ""}
+                      onChange={(e) => updateStyle("height", e.target.value)}
+                      style={{ fontSize: "11px" }}
+                    />
+                  </div>
+                </div>
+                <div
+                  style={{
+                    fontSize: "8px",
+                    color: "#999",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Ex: 400px, 50%, auto
+                </div>
+              </div>
+
+              {config.showFont && (
+                <>
+                  <label
+                    style={{
+                      fontSize: "9px",
+                      color: "#aaa",
+                      display: "block",
+                      marginBottom: "2px",
+                    }}
+                  >
+                    Police
+                  </label>
+                  <select
+                    className="toolbar-input"
+                    value={element.style?.fontFamily || "Arial"}
+                    onChange={(e) => updateStyle("fontFamily", e.target.value)}
+                  >
+                    <option value="Arial">Arial</option>
+                    <option value="Courier New">Courier</option>
+                    <option value="Times New Roman">Times</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                  </select>
+                </>
+              )}
             </div>
+          )}
+
+          {/* Section Config Technique */}
+          {config.showTechConfig && (
+            <div className="toolbar-section">
+              <label
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#888",
+                  marginBottom: "5px",
+                  display: "block",
+                }}
+              >
+                ⚙️ CONFIG TECH
+              </label>
+
+              <div style={{ marginBottom: "5px" }}>
+                <label
+                  style={{
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
+                  }}
+                >
+                  ID Unique (JS)
+                </label>
+                <input
+                  type="text"
+                  className="toolbar-input"
+                  placeholder="ex: mon-bouton-1"
+                  value={element.attributes.htmlId || ""}
+                  onChange={(e) =>
+                    updateElement(element.id, {
+                      attributes: {
+                        ...element.attributes,
+                        htmlId: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    fontSize: "9px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
+                  }}
+                >
+                  Classes CSS
+                </label>
+                <input
+                  type="text"
+                  className="toolbar-input"
+                  placeholder="ex: btn-lg shadow-md"
+                  value={element.attributes.className || ""}
+                  onChange={(e) =>
+                    updateElement(element.id, {
+                      attributes: {
+                        ...element.attributes,
+                        className: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="toolbar-actions">
+            <button
+              onClick={() => removeElement(element.id)}
+              className="toolbar-delete-btn"
+              title="Supprimer l'élément"
+            >
+              🗑️ Supprimer
+            </button>
           </div>
         </div>
+      </div>
     );
   };
 
   return (
-      <div
-          ref={setNodeRef}
-          style={style}
-          {...(!isPreviewMode ? listeners : {})}
-          {...attributes}
-          onClick={(e) => {
-            if (!isPreviewMode) {
-              e.stopPropagation();
-              selectElement(element.id);
-            }
-          }}
-      >
-        {isSelected && !isDragging && renderToolbar()}
-        <RenderNode element={element} />
-      </div>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...(!isPreviewMode ? listeners : {})}
+      {...attributes}
+      onClick={(e) => {
+        if (!isPreviewMode) {
+          e.stopPropagation();
+          selectElement(element.id);
+        }
+      }}
+    >
+      {isSelected && !isDragging && renderToolbar()}
+      <RenderNode element={element} />
+    </div>
   );
 };
