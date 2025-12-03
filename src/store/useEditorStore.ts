@@ -37,6 +37,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       id: uuidv4(),
       type: "header",
       content: "Mon Super Site",
+      type: "header",
+      content: "Mon Super Site",
       x: 0,
       y: 0,
       style: {
@@ -51,11 +53,25 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         justifyContent: "center",
         borderRadius: "0px",
         boxShadow: "none",
+        width: "800px",
+        height: "80px",
+        backgroundColor: "#2c3e50",
+        color: "white",
+        fontFamily: "Arial",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "0px",
+        boxShadow: "none",
       },
+      attributes: { htmlId: "main-header", className: "header-fixed" },
       attributes: { htmlId: "main-header", className: "header-fixed" },
     },
     {
       id: uuidv4(),
+      type: "footer",
+      content: "© 2025 - Tous droits réservés",
       type: "footer",
       content: "© 2025 - Tous droits réservés",
       x: 0,
@@ -72,7 +88,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         justifyContent: "center",
         borderRadius: "0px",
         boxShadow: "none",
+        width: "800px",
+        height: "60px",
+        backgroundColor: "#95a5a6",
+        color: "white",
+        fontFamily: "Arial",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "0px",
+        boxShadow: "none",
       },
+      attributes: { htmlId: "main-footer", className: "" },
       attributes: { htmlId: "main-footer", className: "" },
     },
   ],
@@ -89,6 +117,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const element = state.elements.find((el) => el.id === id);
 
     if (element) {
+      const elementWidth = parseFloat(element.style?.width || "100");
+      const elementHeight = parseFloat(element.style?.height || "100");
       const elementWidth = parseFloat(element.style?.width || "100");
       const elementHeight = parseFloat(element.style?.height || "100");
 
@@ -131,11 +161,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       case "video":
         defaultContent = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
         defaultStyle = { ...defaultStyle, width: "480px", height: "270px" };
+      case "video":
+        defaultContent = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+        defaultStyle = { ...defaultStyle, width: "480px", height: "270px" };
         break;
       case "image":
         defaultContent = "https://via.placeholder.com/300x200";
         defaultStyle = { ...defaultStyle, width: "300px", height: "auto" };
+      case "image":
+        defaultContent = "https://via.placeholder.com/300x200";
+        defaultStyle = { ...defaultStyle, width: "300px", height: "auto" };
         break;
+      case "card":
+        defaultContent = "Titre Carte";
+        defaultDescription = "Description...";
       case "card":
         defaultContent = "Titre Carte";
         defaultDescription = "Description...";
@@ -152,6 +191,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         break;
       case "button":
         defaultContent = "Bouton";
+      case "button":
+        defaultContent = "Bouton";
         defaultStyle = {
           ...defaultStyle,
           backgroundColor: "#3498db",
@@ -160,6 +201,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           padding: "10px 20px",
         };
         break;
+      case "header":
+        defaultContent = "Header";
       case "header":
         defaultContent = "Header";
         defaultStyle = {
@@ -171,6 +214,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           display: "flex",
         };
         break;
+      case "footer":
+        defaultContent = "Footer";
       case "footer":
         defaultContent = "Footer";
         defaultStyle = {
@@ -185,24 +230,47 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       case "title":
         defaultContent = "Mon Titre";
         defaultStyle = { ...defaultStyle, color: "#2c3e50" };
+      case "title":
+        defaultContent = "Mon Titre";
+        defaultStyle = { ...defaultStyle, color: "#2c3e50" };
         break;
+      case "select":
+        defaultContent = "Option 1";
+        defaultOptions = ["Option 1", "Option 2", "Option 3"];
       case "select":
         defaultContent = "Option 1";
         defaultOptions = ["Option 1", "Option 2", "Option 3"];
         break;
       case "input-number":
         defaultContent = "0";
+      case "input-number":
+        defaultContent = "0";
         break;
+      case "input-email":
+        defaultContent = "";
       case "input-email":
         defaultContent = "";
         break;
       case "input-text":
         defaultContent = "";
+      case "input-text":
+        defaultContent = "";
         break;
+      case "input-form": {
+        defaultContent = "Mon Formulaire";
       case "input-form": {
         defaultContent = "Mon Formulaire";
         defaultStyle = {
           ...defaultStyle,
+          width: "400px",
+          backgroundColor: "#f8f9fa",
+          padding: "20px",
+          display: "flex",
+          flexDirection: "column",
+          textAlign: "left",
+          alignItems: "stretch",
+          borderRadius: "8px",
+          border: "1px solid #ddd",
           width: "400px",
           backgroundColor: "#f8f9fa",
           padding: "20px",
@@ -219,8 +287,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             id: uuidv4(),
             type: "input-email",
             content: "",
+            type: "input-email",
+            content: "",
             x: 0,
             y: 0,
+            style: { fontFamily: "Arial" },
+            attributes: { htmlId: "", className: "" },
             style: { fontFamily: "Arial" },
             attributes: { htmlId: "", className: "" },
           },
@@ -240,6 +312,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
               y,
               style: defaultStyle,
               attributes: { htmlId: "", className: "" },
+              attributes: { htmlId: "", className: "" },
             },
           ],
           selectedId: newId,
@@ -248,11 +321,19 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       }
       case "calendar":
         defaultContent = new Date().toISOString().split("T")[0];
+      case "calendar":
+        defaultContent = new Date().toISOString().split("T")[0];
         break;
+      case "map":
+        defaultContent = "Ma carte";
       case "map":
         defaultContent = "Ma carte";
         defaultStyle = {
           ...defaultStyle,
+          width: "400px",
+          height: "300px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           width: "400px",
           height: "300px",
           borderRadius: "8px",
@@ -264,6 +345,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             id: uuidv4(),
             lat: 48.8566,
             lng: 2.3522,
+            label: "Paris",
+            color: "#FF5252",
             label: "Paris",
             color: "#FF5252",
           },
@@ -285,6 +368,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           x,
           y,
           style: defaultStyle,
+          attributes: { htmlId: "", className: "" },
           attributes: { htmlId: "", className: "" },
         },
       ],
@@ -351,6 +435,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     if (child && updates.content !== undefined) {
       audioDescription.announceFormChildUpdated(child.type, "contenu");
+      audioDescription.announceFormChildUpdated(child.type, "contenu");
     }
   },
 
@@ -407,20 +492,24 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         if (updates.style.borderRadius) {
           audioDescription.announceStyleChanged(
             "arrondi",
+            "arrondi",
             updates.style.borderRadius
           );
         }
         if (updates.style.textAlign) {
           audioDescription.announceStyleChanged(
             "alignement",
+            "alignement",
             updates.style.textAlign
           );
         }
         if (updates.style.color !== undefined) {
           audioDescription.announceStyleChanged("couleur", updates.style.color);
+          audioDescription.announceStyleChanged("couleur", updates.style.color);
         }
         if (updates.style.backgroundColor !== undefined) {
           audioDescription.announceStyleChanged(
+            "fond",
             "fond",
             updates.style.backgroundColor
           );
@@ -428,6 +517,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       }
       if (updates.content !== undefined) {
         const contentStr =
+          typeof updates.content === "string"
           typeof updates.content === "string"
             ? updates.content
             : String(updates.content);
@@ -459,8 +549,52 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   getJSON: () => {
     const state = get();
+
+    // Fonction pour générer l'ariaLabel d'un élément
+    const getAriaLabel = (element: EditorElement): string => {
+      // Si l'élément a une description, on l'utilise
+      if (element.description) return element.description;
+
+      // Sinon, on génère un label approprié selon le type
+      const ariaLabels: Record<ElementType, string> = {
+        text: "Élément de texte",
+        button: element.content || "Bouton",
+        image: "Image",
+        video: "Vidéo",
+        header: "En-tête de page",
+        footer: "Pied de page",
+        card: element.content || "Carte",
+        title: element.content || "Titre",
+        select: "Menu déroulant",
+        "input-number": "Champ numérique",
+        "input-email": "Champ email",
+        "input-text": "Champ texte",
+        "input-form": element.content || "Formulaire",
+        calendar: "Sélecteur de date",
+        map: element.content || "Carte interactive",
+        carousel: "Carrousel d'images",
+        textarea: "Zone de texte multiligne",
+        heading: element.content || "En-tête",
+        input: "Champ de saisie",
+      };
+
+      return ariaLabels[element.type] || "Élément";
+    };
+
+    // Mapper les éléments avec leurs ariaLabel
+    const elementsWithAria = state.elements.map((element) => ({
+      ...element,
+      ariaLabel: getAriaLabel(element),
+      // Ajouter ariaLabel aux enfants de formulaire
+      children: element.children?.map((child) => ({
+        ...child,
+        ariaLabel: getAriaLabel(child),
+      })),
+    }));
+
     const exportData = {
       meta: {
+        version: "1.0",
         version: "1.0",
         date: new Date().toISOString(),
       },
@@ -469,7 +603,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         width: state.canvasDimensions.width,
         height: state.canvasDimensions.height,
       },
-      elements: state.elements,
+      elements: elementsWithAria,
     };
     return JSON.stringify(exportData, null, 2);
   },
