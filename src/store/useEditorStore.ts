@@ -8,10 +8,10 @@ interface EditorState {
   selectedId: string | null;
   isPreviewMode: boolean;
   canvasDimensions: { width: number; height: number };
+  canvasBackgroundColor: string; // ✅ Ajouté
 
-  // 1. AJOUT: La propriété pour la couleur
-  canvasBackgroundColor: string;
-
+  // Actions
+  setCanvasBackgroundColor: (color: string) => void; // ✅ Ajouté
   centerElementOnCanvas: (id: string) => void;
   addElement: (type: ElementType, x: number, y: number) => void;
   addChildToForm: (formId: string, childElement: EditorElement) => void;
@@ -25,10 +25,6 @@ interface EditorState {
   selectElement: (id: string | null) => void;
   removeElement: (id: string) => void;
   updateElement: (id: string, updates: Partial<EditorElement>) => void;
-
-  // 2. AJOUT: Le setter pour la couleur
-  setCanvasBackgroundColor: (color: string) => void;
-
   togglePreviewMode: () => void;
   getJSON: () => string;
 }
@@ -51,6 +47,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        borderRadius: '0px',
+        boxShadow: 'none',
       },
       attributes: { htmlId: 'main-header', className: 'header-fixed' },
     },
@@ -70,6 +68,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        borderRadius: '0px',
+        boxShadow: 'none',
       },
       attributes: { htmlId: 'main-footer', className: '' },
     },
@@ -77,11 +77,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectedId: null,
   isPreviewMode: false,
   canvasDimensions: { width: 800, height: 1000 },
-  canvasBackgroundColor: '#ffffff',
+  canvasBackgroundColor: '#ffffff', // Blanc par défaut
 
-  setCanvasBackgroundColor: (color) => {
-    set({ canvasBackgroundColor: color });
-  },
+  setCanvasBackgroundColor: (color) => set({ canvasBackgroundColor: color }),
 
   centerElementOnCanvas: (id) => {
     const state = get();
@@ -113,10 +111,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   addElement: (type, x, y) => {
     const newId = uuidv4();
     let defaultContent = 'Texte';
+    // Style de base incluant radius et shadow par défaut
     let defaultStyle: EditorElement['style'] = {
       fontFamily: 'Arial',
       color: '#000000',
       textAlign: 'left',
+      borderRadius: '0px',
+      boxShadow: 'none',
     };
     let defaultOptions: string[] | undefined = undefined;
     let defaultDescription: string | undefined = undefined;
@@ -143,6 +144,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           padding: '15px',
           display: 'flex',
           flexDirection: 'column',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.1)', // Ombre par défaut pour les cartes
+          borderRadius: '8px', // Arrondi par défaut pour les cartes
         };
         break;
       case 'button':
@@ -210,6 +213,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           flexDirection: 'column',
           textAlign: 'left',
           alignItems: 'stretch',
+          borderRadius: '8px',
+          border: '1px solid #ddd',
         };
 
         const formChildren: EditorElement[] = [
@@ -253,6 +258,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
           ...defaultStyle,
           width: '400px',
           height: '300px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         };
         defaultCoordinates = { lat: 48.8566, lng: 2.3522 };
         defaultMarkers = [
@@ -378,10 +385,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     const styleUpdates = { ...(updates.style || {}) };
 
-    if (element && updates.style && updates.style.textAlign) {
-      //
-    }
-
     if (Object.keys(styleUpdates).length > 0) {
       updates.style = styleUpdates;
     }
@@ -400,6 +403,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     if (element) {
       if (updates.style) {
+        if (updates.style.borderRadius) {
+          audioDescription.announceStyleChanged(
+            'arrondi',
+            updates.style.borderRadius
+          );
+        }
         if (updates.style.textAlign) {
           audioDescription.announceStyleChanged(
             'alignement',
@@ -415,18 +424,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             updates.style.backgroundColor
           );
         }
-        if (updates.style.fontFamily !== undefined) {
-          audioDescription.announceStyleChanged(
-            'police',
-            updates.style.fontFamily
-          );
-        }
-        if (updates.style.fontSize !== undefined) {
-          audioDescription.announceStyleChanged(
-            'taille',
-            `${updates.style.fontSize}px`
-          );
-        }
       }
       if (updates.content !== undefined) {
         const contentStr =
@@ -434,12 +431,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             ? updates.content
             : String(updates.content);
         audioDescription.announceContentChanged(element.type, contentStr);
-      }
-      if (updates.description !== undefined) {
-        audioDescription.announceAttributeChanged(
-          'description',
-          String(updates.description)
-        );
       }
     }
   },
@@ -465,22 +456,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     audioDescription.announceModeChanged(newMode);
   },
 
-  // 5. MODIFICATION MAJEURE: On exporte maintenant un objet complet
-  // au lieu de juste le tableau des éléments.
   getJSON: () => {
-    const { elements, canvasBackgroundColor, canvasDimensions } = get();
-
+    const state = get();
     const exportData = {
-      version: '1.0',
-      timestamp: new Date().toISOString(),
-      pageSettings: {
-        backgroundColor: canvasBackgroundColor,
-        width: canvasDimensions.width,
-        height: canvasDimensions.height,
+      meta: {
+        version: '1.0',
+        date: new Date().toISOString(),
       },
-      elements: elements,
+      canvas: {
+        backgroundColor: state.canvasBackgroundColor,
+        width: state.canvasDimensions.width,
+        height: state.canvasDimensions.height,
+      },
+      elements: state.elements,
     };
-
     return JSON.stringify(exportData, null, 2);
   },
 }));
