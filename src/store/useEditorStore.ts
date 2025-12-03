@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
-import type { EditorElement, ElementType, MapMarker } from "../types/editor";
+import type { EditorElement, ElementType } from "../types/editor";
+import { audioDescription } from "../services/audioDescription";
 
 interface EditorState {
   elements: EditorElement[];
   selectedId: string | null;
   isPreviewMode: boolean;
+  canvasDimensions: { width: number; height: number };
+  centerElement: (id: string) => void;
   addElement: (type: ElementType, x: number, y: number) => void;
   addChildToForm: (formId: string, childElement: EditorElement) => void;
   removeChildFromForm: (formId: string, childId: string) => void;
@@ -57,6 +60,34 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   ],
   selectedId: null,
   isPreviewMode: false,
+  canvasDimensions: { width: 800, height: 1000 },
+
+  centerElement: (id) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
+    if (element) {
+      const elementWidth = parseFloat(element.style?.width || "100");
+      const elementHeight = parseFloat(element.style?.height || "100");
+
+      const centerX = (state.canvasDimensions.width - elementWidth) / 2;
+      const centerY = (state.canvasDimensions.height - elementHeight) / 2;
+
+      set((state) => ({
+        elements: state.elements.map((el) =>
+          el.id === id
+            ? { ...el, x: Math.max(0, centerX), y: Math.max(0, centerY) }
+            : el
+        ),
+      }));
+
+      audioDescription.announceElementMoved(
+        element.type,
+        Math.max(0, centerX),
+        Math.max(0, centerY)
+      );
+    }
+  },
 
   addElement: (type, x, y) => {
     const newId = uuidv4();
@@ -199,24 +230,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       case "calendar":
         defaultContent = new Date().toISOString().split("T")[0];
         break;
-      case "map":
-        defaultContent = "Ma carte";
-        defaultStyle = {
-          ...defaultStyle,
-          width: "400px",
-          height: "300px",
-        };
-        defaultCoordinates = { lat: 48.8566, lng: 2.3522 }; // Paris par défaut
-        defaultMarkers = [
-          {
-            id: uuidv4(),
-            lat: 48.8566,
-            lng: 2.3522,
-            label: "Paris",
-            color: "#FF5252",
-          },
-        ];
-        break;
     }
 
     set((state) => ({
@@ -238,9 +251,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       ],
       selectedId: newId,
     }));
+
+    audioDescription.announceElementAdded(type, x, y);
   },
 
-  addChildToForm: (formId, childElement) =>
+  addChildToForm: (formId, childElement) => {
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -250,9 +265,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
+    audioDescription.announceFormChildAdded(childElement.type);
+  },
 
-  removeChildFromForm: (formId, childId) =>
+  removeChildFromForm: (formId, childId) => {
+    const state = get();
+    const form = state.elements.find((el) => el.id === formId);
+    const child = form?.children?.find((c) => c.id === childId);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -264,9 +285,18 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
 
-  updateFormChild: (formId, childId, updates) =>
+    if (child) {
+      audioDescription.announceFormChildRemoved(child.type);
+    }
+  },
+
+  updateFormChild: (formId, childId, updates) => {
+    const state = get();
+    const form = state.elements.find((el) => el.id === formId);
+    const child = form?.children?.find((c) => c.id === childId);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === formId
@@ -278,27 +308,110 @@ export const useEditorStore = create<EditorState>((set, get) => ({
             }
           : el
       ),
-    })),
+    }));
 
-  updatePosition: (id, x, y) =>
+    if (child && updates.content !== undefined) {
+      audioDescription.announceFormChildUpdated(child.type, "contenu");
+    }
+    if (child && updates.description !== undefined) {
+      audioDescription.announceFormChildUpdated(child.type, "label");
+    }
+  },
+
+  updatePosition: (id, x, y) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, x, y } : el
       ),
-    })),
-  selectElement: (id) => set({ selectedId: id }),
-  updateElement: (id, updates) =>
+    }));
+
+    if (element) {
+      audioDescription.announceElementMoved(element.type, x, y);
+    }
+  },
+
+  selectElement: (id) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+    set({ selectedId: id });
+    audioDescription.announceElementSelected(element || null);
+  },
+
+  updateElement: (id, updates) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.map((el) =>
         el.id === id ? { ...el, ...updates } : el
       ),
-    })),
-  removeElement: (id) =>
+    }));
+
+    if (element) {
+      // Determine what changed
+      if (updates.style) {
+        // Check specific style properties
+        if (updates.style.color !== undefined) {
+          audioDescription.announceStyleChanged("couleur", updates.style.color);
+        }
+        if (updates.style.backgroundColor !== undefined) {
+          audioDescription.announceStyleChanged(
+            "fond",
+            updates.style.backgroundColor
+          );
+        }
+        if (updates.style.fontFamily !== undefined) {
+          audioDescription.announceStyleChanged(
+            "police",
+            updates.style.fontFamily
+          );
+        }
+        if (updates.style.fontSize !== undefined) {
+          audioDescription.announceStyleChanged(
+            "taille",
+            `${updates.style.fontSize}px`
+          );
+        }
+      }
+      if (updates.content !== undefined) {
+        const contentStr =
+          typeof updates.content === "string"
+            ? updates.content
+            : String(updates.content);
+        audioDescription.announceContentChanged(element.type, contentStr);
+      }
+      if (updates.description !== undefined) {
+        audioDescription.announceAttributeChanged(
+          "description",
+          String(updates.description)
+        );
+      }
+    }
+  },
+
+  removeElement: (id) => {
+    const state = get();
+    const element = state.elements.find((el) => el.id === id);
+
     set((state) => ({
       elements: state.elements.filter((el) => el.id !== id),
       selectedId: null,
-    })),
-  togglePreviewMode: () =>
-    set((state) => ({ isPreviewMode: !state.isPreviewMode, selectedId: null })),
+    }));
+
+    if (element) {
+      audioDescription.announceElementRemoved(element.type);
+    }
+  },
+
+  togglePreviewMode: () => {
+    const state = get();
+    const newMode = !state.isPreviewMode;
+    set({ isPreviewMode: newMode, selectedId: null });
+    audioDescription.announceModeChanged(newMode);
+  },
+
   getJSON: () => JSON.stringify(get().elements, null, 2),
 }));

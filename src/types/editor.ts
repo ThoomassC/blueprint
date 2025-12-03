@@ -59,5 +59,9 @@ export interface EditorElement {
     fontSize?: string;
     borderRadius?: string;
     fontFamily?: string;
+    verticalAlign?: "top" | "middle" | "bottom";
+    horizontalAlign?: "left" | "center" | "right";
+    textAlign?: "left" | "center" | "right";
+    justifyContent?: "flex-start" | "center" | "flex-end" | "space-between";
   };
 }

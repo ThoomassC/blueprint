@@ -2,6 +2,7 @@ import { useDraggable } from "@dnd-kit/core";
 import type { EditorElement } from "../../types/editor";
 import { RenderNode } from "./RenderNode";
 import { useEditorStore } from "../../store/useEditorStore";
+import React from "react";
 
 interface Props {
   element: EditorElement;
@@ -109,8 +110,14 @@ export const DraggableCanvasElement = ({ element }: Props) => {
   const selectedId = useEditorStore((state) => state.selectedId);
   const updateElement = useEditorStore((state) => state.updateElement);
   const removeElement = useEditorStore((state) => state.removeElement);
+  const centerElement = useEditorStore((state) => state.centerElement);
   const isPreviewMode = useEditorStore((state) => state.isPreviewMode);
   const isSelected = !isPreviewMode && selectedId === element.id;
+  const [isResizing, setIsResizing] = React.useState(false);
+  const [resizePreview, setResizePreview] = React.useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -130,8 +137,83 @@ export const DraggableCanvasElement = ({ element }: Props) => {
 
   const config = TOOLBAR_CONFIG[element.type] || TOOLBAR_CONFIG.text;
 
-  const updateStyle = (key: string, value: string) =>
-    updateElement(element.id, { style: { ...element.style, [key]: value } });
+  const updateStyle = (key: string, value: string | number) => {
+    const finalValue = typeof value === "number" ? `${value}px` : value;
+    updateElement(element.id, {
+      style: { ...element.style, [key]: finalValue },
+    });
+  };
+
+  const extractNumericValue = (value?: string): number => {
+    if (!value) return 100;
+    const numeric = parseFloat(value);
+    return isNaN(numeric) ? 100 : numeric;
+  };
+
+  const startResize = (direction: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialWidth = extractNumericValue(element.style?.width);
+    const initialHeight = extractNumericValue(element.style?.height);
+    const initialX = element.x;
+    const initialY = element.y;
+
+    const MIN_SIZE = 40;
+    const MAX_SIZE = 1000;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+
+      let newWidth = initialWidth;
+      let newHeight = initialHeight;
+      let newX = initialX;
+      let newY = initialY;
+
+      // Redimensionner depuis la droite/gauche
+      if (direction.includes("e")) {
+        newWidth = initialWidth + deltaX;
+      }
+      if (direction.includes("w")) {
+        newWidth = initialWidth - deltaX;
+        newX = initialX + deltaX; // Ajuster X pour que l'élément grandisse vers la gauche
+      }
+
+      // Redimensionner depuis le bas/haut
+      if (direction.includes("s")) {
+        newHeight = initialHeight + deltaY;
+      }
+      if (direction.includes("n")) {
+        newHeight = initialHeight - deltaY;
+        newY = initialY + deltaY; // Ajuster Y pour que l'élément grandisse vers le haut
+      }
+
+      newWidth = Math.max(MIN_SIZE, Math.min(MAX_SIZE, newWidth));
+      newHeight = Math.max(MIN_SIZE, Math.min(MAX_SIZE, newHeight));
+
+      setResizePreview({ width: newWidth, height: newHeight });
+      updateStyle("width", newWidth);
+      updateStyle("height", newHeight);
+
+      // Mettre à jour la position uniquement si on redimensionne depuis l'ouest ou le nord
+      if (direction.includes("w") || direction.includes("n")) {
+        updateElement(element.id, { x: newX, y: newY });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      setResizePreview(null);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
 
   const updateCurrentSlide = (
     key: "title" | "description" | "imageUrl",
@@ -295,192 +377,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
       );
     }
 
-    if (config.customFields?.includes("location")) {
-      return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-          <label style={{ fontSize: "9px", color: "#aaa" }}>
-            NOM DE LA CARTE
-          </label>
-          <input
-            className="toolbar-input"
-            placeholder="Nom du lieu"
-            value={element.content}
-            onChange={(e) =>
-              updateElement(element.id, { content: e.target.value })
-            }
-          />
-
-          <div
-            style={{
-              marginTop: "10px",
-              borderTop: "1px solid #ddd",
-              paddingTop: "10px",
-            }}
-          >
-            <label style={{ fontSize: "9px", color: "#aaa" }}>
-              POINTS SUR LA CARTE
-            </label>
-            {(element.markers || []).map((marker, i) => (
-              <div
-                key={marker.id}
-                style={{
-                  marginTop: "5px",
-                  padding: "8px",
-                  backgroundColor: "#f5f5f5",
-                  borderRadius: "4px",
-                  border: "1px solid #e0e0e0",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "5px",
-                  }}
-                >
-                  <label
-                    style={{
-                      fontSize: "8px",
-                      color: "#666",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    POINT {i + 1}
-                  </label>
-                  <button
-                    className="btn-mini-delete"
-                    onClick={() =>
-                      updateElement(element.id, {
-                        markers: element.markers?.filter(
-                          (m) => m.id !== marker.id
-                        ),
-                      })
-                    }
-                  >
-                    🗑️
-                  </button>
-                </div>
-                <input
-                  className="toolbar-input"
-                  placeholder="Nom du point"
-                  value={marker.label}
-                  style={{ marginBottom: "3px", fontSize: "11px" }}
-                  onChange={(e) => {
-                    const newMarkers = [...(element.markers || [])];
-                    newMarkers[i] = { ...marker, label: e.target.value };
-                    updateElement(element.id, { markers: newMarkers });
-                  }}
-                />
-                <div
-                  style={{ display: "flex", gap: "3px", marginBottom: "3px" }}
-                >
-                  <input
-                    type="number"
-                    step="0.0001"
-                    className="toolbar-input-small"
-                    placeholder="Lat"
-                    value={marker.lat}
-                    style={{ fontSize: "10px" }}
-                    onChange={(e) => {
-                      const newMarkers = [...(element.markers || [])];
-                      newMarkers[i] = {
-                        ...marker,
-                        lat: parseFloat(e.target.value) || 0,
-                      };
-                      updateElement(element.id, { markers: newMarkers });
-                    }}
-                  />
-                  <input
-                    type="number"
-                    step="0.0001"
-                    className="toolbar-input-small"
-                    placeholder="Lng"
-                    value={marker.lng}
-                    style={{ fontSize: "10px" }}
-                    onChange={(e) => {
-                      const newMarkers = [...(element.markers || [])];
-                      newMarkers[i] = {
-                        ...marker,
-                        lng: parseFloat(e.target.value) || 0,
-                      };
-                      updateElement(element.id, { markers: newMarkers });
-                    }}
-                  />
-                </div>
-                <div
-                  style={{ display: "flex", gap: "3px", alignItems: "center" }}
-                >
-                  <label style={{ fontSize: "8px", color: "#666" }}>
-                    Couleur:
-                  </label>
-                  <input
-                    type="color"
-                    value={marker.color || "#FF5252"}
-                    style={{
-                      width: "40px",
-                      height: "25px",
-                      border: "1px solid #ccc",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                    }}
-                    onChange={(e) => {
-                      const newMarkers = [...(element.markers || [])];
-                      newMarkers[i] = {
-                        ...marker,
-                        color: e.target.value,
-                      };
-                      updateElement(element.id, { markers: newMarkers });
-                    }}
-                  />
-                  <div
-                    style={{
-                      flex: 1,
-                      fontSize: "9px",
-                      color: "#999",
-                      textAlign: "right",
-                    }}
-                  >
-                    {marker.color || "#FF5252"}
-                  </div>
-                </div>
-              </div>
-            ))}
-            <button
-              className="btn-add-option"
-              style={{ marginTop: "5px", width: "100%" }}
-              onClick={() => {
-                // Couleurs prédéfinies pour varier automatiquement
-                const colors = [
-                  "#FF5252",
-                  "#4CAF50",
-                  "#2196F3",
-                  "#FFC107",
-                  "#9C27B0",
-                  "#FF9800",
-                ];
-                const colorIndex =
-                  (element.markers?.length || 0) % colors.length;
-
-                const newMarker = {
-                  id: `marker-${Date.now()}`,
-                  lat: element.coordinates?.lat || 48.8566,
-                  lng: element.coordinates?.lng || 2.3522,
-                  label: `Point ${(element.markers?.length || 0) + 1}`,
-                  color: colors[colorIndex],
-                };
-                updateElement(element.id, {
-                  markers: [...(element.markers || []), newMarker],
-                });
-              }}
-            >
-              + Ajouter un point
-            </button>
-          </div>
-        </div>
-      );
-    }
-
     return null;
   };
 
@@ -589,63 +485,6 @@ export const DraggableCanvasElement = ({ element }: Props) => {
                 </div>
               )}
 
-              {/* Dimensions */}
-              <div style={{ marginBottom: "8px" }}>
-                <div
-                  style={{ display: "flex", gap: "5px", marginBottom: "5px" }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <label
-                      style={{
-                        fontSize: "8px",
-                        color: "#aaa",
-                        display: "block",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      Largeur
-                    </label>
-                    <input
-                      type="text"
-                      className="toolbar-input"
-                      placeholder="auto"
-                      value={element.style?.width || ""}
-                      onChange={(e) => updateStyle("width", e.target.value)}
-                      style={{ fontSize: "11px" }}
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label
-                      style={{
-                        fontSize: "8px",
-                        color: "#aaa",
-                        display: "block",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      Hauteur
-                    </label>
-                    <input
-                      type="text"
-                      className="toolbar-input"
-                      placeholder="auto"
-                      value={element.style?.height || ""}
-                      onChange={(e) => updateStyle("height", e.target.value)}
-                      style={{ fontSize: "11px" }}
-                    />
-                  </div>
-                </div>
-                <div
-                  style={{
-                    fontSize: "8px",
-                    color: "#999",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Ex: 400px, 50%, auto
-                </div>
-              </div>
-
               {config.showFont && (
                 <>
                   <label
@@ -674,6 +513,300 @@ export const DraggableCanvasElement = ({ element }: Props) => {
               )}
             </div>
           )}
+
+          {/* Section Dimensions */}
+          <div className="toolbar-section">
+            <label
+              style={{
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#888",
+                marginBottom: "5px",
+                display: "block",
+              }}
+            >
+              📏 DIMENSIONS
+            </label>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+              <div style={{ flex: 1 }}>
+                <label
+                  style={{
+                    fontSize: "8px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
+                  }}
+                >
+                  L:{" "}
+                  {resizePreview
+                    ? Math.round(resizePreview.width)
+                    : Math.round(extractNumericValue(element.style?.width))}
+                  px
+                </label>
+                <input
+                  type="range"
+                  value={extractNumericValue(element.style?.width)}
+                  onChange={(e) =>
+                    updateStyle("width", parseInt(e.target.value))
+                  }
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
+                  min="40"
+                  max="1000"
+                />
+                <input
+                  type="number"
+                  value={Math.round(extractNumericValue(element.style?.width))}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 100;
+                    updateStyle("width", Math.max(40, Math.min(1000, val)));
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "4px",
+                    fontSize: "11px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    marginTop: "2px",
+                  }}
+                  min="40"
+                  max="1000"
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label
+                  style={{
+                    fontSize: "8px",
+                    color: "#aaa",
+                    display: "block",
+                    marginBottom: "2px",
+                  }}
+                >
+                  H:{" "}
+                  {resizePreview
+                    ? Math.round(resizePreview.height)
+                    : Math.round(extractNumericValue(element.style?.height))}
+                  px
+                </label>
+                <input
+                  type="range"
+                  value={extractNumericValue(element.style?.height)}
+                  onChange={(e) =>
+                    updateStyle("height", parseInt(e.target.value))
+                  }
+                  style={{
+                    width: "100%",
+                    cursor: "pointer",
+                  }}
+                  min="40"
+                  max="1000"
+                />
+                <input
+                  type="number"
+                  value={Math.round(extractNumericValue(element.style?.height))}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 100;
+                    updateStyle("height", Math.max(40, Math.min(1000, val)));
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "4px",
+                    fontSize: "11px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                    marginTop: "2px",
+                  }}
+                  min="40"
+                  max="1000"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section Alignement */}
+          <div className="toolbar-section">
+            <label
+              style={{
+                fontSize: "10px",
+                fontWeight: "bold",
+                color: "#888",
+                marginBottom: "5px",
+                display: "block",
+              }}
+            >
+              📐 ALIGNEMENT
+            </label>
+
+            {/* Alignement vertical */}
+            <label
+              style={{
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
+              }}
+            >
+              Vertical
+            </label>
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["top", "middle", "bottom"].map((align) => (
+                <button
+                  key={align}
+                  onClick={() => updateStyle("verticalAlign", align)}
+                  style={{
+                    flex: 1,
+                    padding: "4px 8px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.verticalAlign === align
+                        ? "#3498db"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.verticalAlign === align ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.verticalAlign === align
+                        ? "bold"
+                        : "normal",
+                  }}
+                >
+                  {align === "top" ? "↑" : align === "middle" ? "↕️" : "↓"}
+                </button>
+              ))}
+            </div>
+
+            {/* Alignement horizontal (élément) */}
+            <label
+              style={{
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
+              }}
+            >
+              Horizontal (élément)
+            </label>
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["left", "center", "right"].map((align) => (
+                <button
+                  key={align}
+                  onClick={() => updateStyle("horizontalAlign", align)}
+                  style={{
+                    flex: 1,
+                    padding: "4px 8px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.horizontalAlign === align
+                        ? "#3498db"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.horizontalAlign === align
+                        ? "white"
+                        : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.horizontalAlign === align
+                        ? "bold"
+                        : "normal",
+                  }}
+                >
+                  {align === "left" ? "←" : align === "center" ? "↔️" : "→"}
+                </button>
+              ))}
+            </div>
+
+            {/* Alignement du texte */}
+            <label
+              style={{
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
+              }}
+            >
+              Texte
+            </label>
+            <div style={{ display: "flex", gap: "3px", marginBottom: "8px" }}>
+              {["left", "center", "right"].map((align) => (
+                <button
+                  key={`text-${align}`}
+                  onClick={() => updateStyle("textAlign", align)}
+                  style={{
+                    flex: 1,
+                    padding: "4px 8px",
+                    fontSize: "11px",
+                    backgroundColor:
+                      element.style?.textAlign === align
+                        ? "#27ae60"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.textAlign === align ? "white" : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.textAlign === align ? "bold" : "normal",
+                  }}
+                >
+                  {align === "left" ? "⬅️" : align === "center" ? "⏹️" : "➡️"}
+                </button>
+              ))}
+            </div>
+
+            {/* Justify content */}
+            <label
+              style={{
+                fontSize: "9px",
+                color: "#aaa",
+                display: "block",
+                marginBottom: "2px",
+              }}
+            >
+              Distribution
+            </label>
+            <div style={{ display: "flex", gap: "3px" }}>
+              {[
+                { value: "flex-start", label: "Start" },
+                { value: "center", label: "Center" },
+                { value: "flex-end", label: "End" },
+                { value: "space-between", label: "Entre" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => updateStyle("justifyContent", option.value)}
+                  style={{
+                    flex: 1,
+                    padding: "4px 4px",
+                    fontSize: "10px",
+                    backgroundColor:
+                      element.style?.justifyContent === option.value
+                        ? "#e74c3c"
+                        : "#e0e0e0",
+                    color:
+                      element.style?.justifyContent === option.value
+                        ? "white"
+                        : "#333",
+                    border: "none",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight:
+                      element.style?.justifyContent === option.value
+                        ? "bold"
+                        : "normal",
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Section Config Technique */}
           {config.showTechConfig && (
@@ -749,6 +882,24 @@ export const DraggableCanvasElement = ({ element }: Props) => {
           {/* Actions */}
           <div className="toolbar-actions">
             <button
+              onClick={() => centerElement(element.id)}
+              className="toolbar-center-btn"
+              title="Centrer l'élément sur le canvas"
+              style={{
+                padding: "8px 12px",
+                backgroundColor: "#f39c12",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginRight: "8px",
+              }}
+            >
+              📍 Centrer
+            </button>
+            <button
               onClick={() => removeElement(element.id)}
               className="toolbar-delete-btn"
               title="Supprimer l'élément"
@@ -774,6 +925,192 @@ export const DraggableCanvasElement = ({ element }: Props) => {
         }
       }}
     >
+      {/* Poignées de redimensionnement */}
+      {isSelected && !isDragging && !isPreviewMode && (
+        <>
+          {/* Coin haut-gauche */}
+          <div
+            onMouseDown={startResize("nw")}
+            style={{
+              position: "absolute",
+              top: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nwse-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: isResizing ? 1 : 0.7,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
+            }}
+            title="Redimensionner"
+          />
+          {/* Coin haut-droit */}
+          <div
+            onMouseDown={startResize("ne")}
+            style={{
+              position: "absolute",
+              top: "-8px",
+              right: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: isResizing ? 1 : 0.7,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
+            }}
+            title="Redimensionner"
+          />
+          {/* Coin bas-gauche */}
+          <div
+            onMouseDown={startResize("sw")}
+            style={{
+              position: "absolute",
+              bottom: "-8px",
+              left: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "nesw-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: isResizing ? 1 : 0.7,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
+            }}
+            title="Redimensionner"
+          />
+          {/* Coin bas-droit */}
+          <div
+            onMouseDown={startResize("se")}
+            style={{
+              position: "absolute",
+              bottom: "-8px",
+              right: "-8px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#27ae60",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "se-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: isResizing ? 1 : 0.7,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+              transition: "all 0.1s",
+            }}
+            title="Redimensionner (coin bas-droit)"
+          />
+          {/* Milieu haut */}
+          <div
+            onMouseDown={startResize("n")}
+            style={{
+              position: "absolute",
+              top: "-6px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ns-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: 0.5,
+              transition: "all 0.1s",
+            }}
+          />
+          {/* Milieu bas */}
+          <div
+            onMouseDown={startResize("s")}
+            style={{
+              position: "absolute",
+              bottom: "-6px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ns-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: 0.5,
+              transition: "all 0.1s",
+            }}
+          />
+          {/* Milieu gauche */}
+          <div
+            onMouseDown={startResize("w")}
+            style={{
+              position: "absolute",
+              left: "-6px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ew-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: 0.5,
+              transition: "all 0.1s",
+            }}
+          />
+          {/* Milieu droit */}
+          <div
+            onMouseDown={startResize("e")}
+            style={{
+              position: "absolute",
+              right: "-6px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: "12px",
+              height: "12px",
+              backgroundColor: "#3498db",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "ew-resize",
+              zIndex: isResizing ? 1001 : 101,
+              opacity: 0.5,
+              transition: "all 0.1s",
+            }}
+          />
+
+          {/* Affichage des dimensions pendant le redimensionnement */}
+          {isResizing && resizePreview && (
+            <div
+              style={{
+                position: "absolute",
+                top: "-30px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                backgroundColor: "#2c3e50",
+                color: "white",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                fontSize: "11px",
+                whiteSpace: "nowrap",
+                zIndex: 1002,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                fontWeight: "bold",
+              }}
+            >
+              {Math.round(resizePreview.width)} ×{" "}
+              {Math.round(resizePreview.height)}px
+            </div>
+          )}
+        </>
+      )}
+
       {isSelected && !isDragging && renderToolbar()}
       <RenderNode element={element} />
     </div>
