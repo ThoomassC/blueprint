@@ -17,7 +17,8 @@ export type ElementType =
   | "carousel"
   | "textarea"
   | "heading"
-  | "input";
+  | "input"
+  | "logo";
 
 export interface MapMarker {
   id: string;

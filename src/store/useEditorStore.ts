@@ -486,6 +486,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         textarea: "Zone de texte multiligne",
         heading: element.content || "En-tête",
         input: "Champ de saisie",
+        logo: "Logo du site",
       };
 
       return ariaLabels[element.type] || "Élément";
