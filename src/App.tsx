@@ -142,7 +142,16 @@ function App() {
     if (!fileName) fileName = "export-sans-nom";
     if (!fileName.endsWith(".json")) fileName += ".json";
 
-    const jsonString = getJSON();
+    const jsonData = JSON.parse(getJSON());
+    // Ajouter le logo aux données exportées
+    jsonData.logo = {
+      src: "/src/assets/logo.png",
+      alt: "Logo du site",
+      position: { top: 2, left: 20 },
+      width: "80px",
+      zIndex: 9999,
+    };
+    const jsonString = JSON.stringify(jsonData, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
