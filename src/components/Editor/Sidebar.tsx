@@ -13,6 +13,7 @@ import MailIcon from "../../assets/mail.svg?react";
 import FormIcon from "../../assets/form.svg?react";
 import DateIcon from "../../assets/date.svg?react";
 import MapIcon from "../../assets/map.svg?react";
+import CarouselIcon from "../../assets/carousel.svg?react";
 
 export const Sidebar = () => {
   return (
@@ -37,6 +38,7 @@ export const Sidebar = () => {
         <SidebarItem type="input-form" icon={<FormIcon />} title="Formulaire" />
         <SidebarItem type="calendar" icon={<DateIcon />} title="Date" />
         <SidebarItem type="map" icon={<MapIcon />} title="Carte" />
+        <SidebarItem type="carousel" icon={<CarouselIcon />} title="Caroussel" />
       </div>
     </div>
   );

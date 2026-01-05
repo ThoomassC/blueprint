@@ -28,10 +28,19 @@ export interface MapMarker {
   color?: string;
 }
 
+// Ancienne structure (peut être gardée pour compatibilité ou supprimée si nouveau projet)
 export interface Slide {
   title: string;
   description: string;
   imageUrl: string;
+}
+
+// NOUVELLE STRUCTURE POUR LE CARROUSEL MIXTE
+export interface CarouselItem {
+  type: "image" | "video" | "card";
+  url?: string;         // Utilisé pour image et video
+  title?: string;       // Utilisé pour card
+  description?: string; // Utilisé pour card
 }
 
 export interface EditorElement {
@@ -52,11 +61,11 @@ export interface EditorElement {
     border?: string;
     display?: "flex" | "block" | "inline-block" | "none" | string;
     flexDirection?:
-      | "row"
-      | "column"
-      | "row-reverse"
-      | "column-reverse"
-      | string;
+        | "row"
+        | "column"
+        | "row-reverse"
+        | "column-reverse"
+        | string;
     gap?: string;
     zIndex?: number;
     position?: "absolute" | "relative" | string;
@@ -64,6 +73,10 @@ export interface EditorElement {
     top?: number | string;
     cursor?: string;
     textAlign?: "left" | "center" | "right";
+    boxShadow?: string; // Ajouté car utilisé dans RenderNode
+    verticalAlign?: "top" | "middle" | "bottom" | string; // Ajouté pour flex alignment
+    alignItems?: string;
+    justifyContent?: string;
     [key: string]: string | number | undefined;
   };
   attributes?: {
@@ -76,5 +89,8 @@ export interface EditorElement {
   options?: string[];
   coordinates?: { lat: number; lng: number };
   markers?: MapMarker[];
-  slides?: Slide[];
+
+  // Champs pour le carrousel
+  slides?: Slide[]; // Ancien
+  carouselItems?: CarouselItem[]; // Nouveau (Mixte)
 }
